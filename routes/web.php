@@ -2,6 +2,5 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Point d'entrée SPA — toutes les routes non-API renvoient le shell HTML Vue
+Route::get('/{any?}', fn () => view('app'))->where('any', '^(?!api).*');
