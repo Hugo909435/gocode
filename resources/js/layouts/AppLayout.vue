@@ -2,9 +2,12 @@
   <div class="min-h-screen bg-gray-950 text-gray-100 flex">
     <!-- Sidebar -->
     <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
-      <div class="p-4 border-b border-gray-800">
-        <h1 class="text-xl font-bold text-indigo-400">gocode</h1>
-        <p class="text-xs text-gray-500 mt-0.5">Agent IA local</p>
+      <div class="p-4 border-b border-gray-800 flex items-center gap-3">
+        <img src="/logo/logo.png" alt="gocode Logo" class="w-8 h-8 object-contain" />
+        <div>
+          <h1 class="text-xl font-bold text-indigo-400">gocode</h1>
+          <p class="text-xs text-gray-500">Agent IA local</p>
+        </div>
       </div>
       <nav class="flex-1 p-3 space-y-1">
         <RouterLink

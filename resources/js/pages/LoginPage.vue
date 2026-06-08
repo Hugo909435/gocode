@@ -1,8 +1,13 @@
 <template>
   <div class="min-h-screen bg-gray-950 flex items-center justify-center">
     <div class="w-full max-w-sm bg-gray-900 rounded-xl border border-gray-800 p-8">
-      <h1 class="text-2xl font-bold text-white mb-1">gocode</h1>
-      <p class="text-sm text-gray-400 mb-6">Connexion à votre agent local</p>
+      <div class="flex items-center gap-4 mb-6">
+        <img src="/logo/logo.png" alt="gocode Logo" class="w-12 h-12 object-contain" />
+        <div>
+          <h1 class="text-2xl font-bold text-white leading-tight">gocode</h1>
+          <p class="text-sm text-gray-400">Agent IA local</p>
+        </div>
+      </div>
 
       <form class="space-y-4" @submit.prevent="submit">
         <div>
