@@ -19,6 +19,14 @@ interface AgentDriverContract
     public function sendInstruction(Session $session, string $instruction, string $mode): void;
 
     /**
+     * Répond à une demande de confirmation émise par l'agent.
+     *
+     * @param  string  $actionId  Identifiant de l'action (payload du confirmation_request)
+     * @param  bool    $approved  true = confirmer, false = annuler
+     */
+    public function confirmAction(Session $session, string $actionId, bool $approved): void;
+
+    /**
      * Arrête proprement l'agent pour la session donnée.
      */
     public function stop(Session $session): void;

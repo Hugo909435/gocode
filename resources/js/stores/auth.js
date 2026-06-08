@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@/api/client.js';
@@ -8,8 +9,8 @@ export const useAuthStore = defineStore('auth', () => {
 
     async function fetchUser() {
         try {
-            const { data } = await api.get('/user');
-            user.value = data;
+            const { data } = await api.get('/me');
+            user.value = data.data;
         } catch {
             user.value = null;
         } finally {
@@ -18,7 +19,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function login(email, password) {
-        await api.get('/sanctum/csrf-cookie');
+        // Utilise axios brut (sans baseURL /api) — Sanctum n'est pas sous /api
+        await axios.get('/sanctum/csrf-cookie', { withCredentials: true });
         await api.post('/login', { email, password });
         await fetchUser();
     }

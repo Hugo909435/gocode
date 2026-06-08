@@ -12,10 +12,12 @@ return new class extends Migration
             $table->id();
             $table->uuid('session_id');
             $table->foreign('session_id')->references('id')->on('agent_sessions')->cascadeOnDelete();
-            $table->string('type');                 // status | plan | message | log | terminal | …
-            $table->json('payload');
-            $table->timestamp('emitted_at')->useCurrent();
-            $table->index(['session_id', 'emitted_at']);
+            $table->enum('role', ['user', 'agent', 'system', 'tool']);
+            $table->enum('type', ['text', 'plan', 'log', 'terminal', 'tool_call', 'file_change', 'confirmation_request', 'cost', 'status', 'error']);
+            $table->longText('content');
+            $table->json('meta')->nullable();
+            $table->timestamps();
+            $table->index(['session_id', 'created_at']);
         });
     }
 

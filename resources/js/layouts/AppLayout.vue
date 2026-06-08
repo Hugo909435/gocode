@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-gray-900 border-r border-gray-800 flex flex-col">
       <div class="p-4 border-b border-gray-800">
-        <h1 class="text-xl font-bold text-indigo-400">Cockpit</h1>
+        <h1 class="text-xl font-bold text-indigo-400">gocode</h1>
         <p class="text-xs text-gray-500 mt-0.5">Agent IA local</p>
       </div>
       <nav class="flex-1 p-3 space-y-1">

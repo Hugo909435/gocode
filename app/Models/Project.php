@@ -13,8 +13,10 @@ class Project extends Model
     protected $fillable = [
         'name',
         'path',
-        'git_remote',
         'default_branch',
+        'stack',
+        'description',
+        'git_remote',
         'metadata',
     ];
 

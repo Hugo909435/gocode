@@ -10,8 +10,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->string('key')->primary();
-            $table->text('value')->nullable();
-            $table->string('type')->default('string'); // string | boolean | integer | json
+            $table->json('value')->nullable();
             $table->timestamps();
         });
     }

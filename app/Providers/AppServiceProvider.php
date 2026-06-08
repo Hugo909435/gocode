@@ -2,21 +2,22 @@
 
 namespace App\Providers;
 
+use App\Agent\AgentManager;
+use App\Contracts\AgentDriverContract;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->singleton(AgentManager::class);
+
+        // Lie le contrat au driver résolu par l'AgentManager (selon config('agent.default'))
+        $this->app->bind(AgentDriverContract::class, function ($app) {
+            return $app->make(AgentManager::class)->driver();
+        });
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         //

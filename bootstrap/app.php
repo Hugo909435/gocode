@@ -15,6 +15,18 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Sanctum : middleware stateful pour les routes SPA (cookie de session)
         $middleware->statefulApi();
+
+        // On s'assure que la session est démarrée pour toutes les routes API
+        // car LoginController l'utilise pour régénérer la session.
+        $middleware->appendToGroup('api', [
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
+
+        // Sans cela, une requête non-JSON non authentifiée (ex. EventSource SSE)
+        // tenterait un redirect vers la route nommée 'login' qui n'existe pas dans
+        // cette app API-only, résultant en une RouteNotFoundException (500).
+        // Retourner null force shouldRenderJsonWhen à produire un 401 JSON propre.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

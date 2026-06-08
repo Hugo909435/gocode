@@ -10,18 +10,16 @@ class Message extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'session_id',
+        'role',
         'type',
-        'payload',
-        'emitted_at',
+        'content',
+        'meta',
     ];
 
     protected $casts = [
-        'payload'    => 'array',
-        'emitted_at' => 'datetime',
+        'meta' => 'array',
     ];
 
     public function session(): BelongsTo

@@ -9,12 +9,12 @@ return new class extends Migration
     public function up(): void
     {
         // Renommer la table sessions existante (driver de session Laravel) pour éviter le conflit
-        // La table agent_sessions est dédiée aux sessions Cockpit
+        // La table agent_sessions est dédiée aux sessions gocode
         Schema::create('agent_sessions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->enum('mode', ['read', 'plan', 'execute'])->default('read');
-            $table->enum('status', ['pending', 'running', 'paused', 'done', 'error'])->default('pending');
+            $table->enum('status', ['idle', 'reading', 'planning', 'awaiting_confirmation', 'building', 'running', 'done', 'error'])->default('idle');
             $table->string('title')->nullable();
             $table->text('initial_instruction')->nullable();
             $table->unsignedInteger('input_tokens')->default(0);

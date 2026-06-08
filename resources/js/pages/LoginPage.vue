@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-950 flex items-center justify-center">
     <div class="w-full max-w-sm bg-gray-900 rounded-xl border border-gray-800 p-8">
-      <h1 class="text-2xl font-bold text-white mb-1">Cockpit</h1>
+      <h1 class="text-2xl font-bold text-white mb-1">gocode</h1>
       <p class="text-sm text-gray-400 mb-6">Connexion à votre agent local</p>
 
       <form class="space-y-4" @submit.prevent="submit">
@@ -33,6 +33,16 @@
         >
           {{ loading ? 'Connexion…' : 'Se connecter' }}
         </button>
+
+        <button
+          v-if="isDev"
+          type="button"
+          :disabled="loading"
+          class="w-full py-2 px-4 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 rounded-lg text-amber-400 text-xs font-mono transition-colors border border-dashed border-gray-600"
+          @click="devLogin"
+        >
+          ⚡ Dev login (admin@gocode.local)
+        </button>
       </form>
     </div>
   </div>
@@ -46,9 +56,16 @@ import { useAuthStore } from '@/stores/auth.js';
 const auth = useAuthStore();
 const router = useRouter();
 
+const isDev = import.meta.env.DEV;
+
 const form = ref({ email: '', password: '' });
 const loading = ref(false);
 const error = ref('');
+
+async function devLogin() {
+    form.value = { email: 'admin@gocode.local', password: 'password' };
+    await submit();
+}
 
 async function submit() {
     loading.value = true;

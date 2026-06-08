@@ -16,9 +16,9 @@ class Session extends Model
 
     protected $fillable = [
         'project_id',
+        'title',
         'mode',
         'status',
-        'title',
         'initial_instruction',
         'input_tokens',
         'output_tokens',
@@ -39,6 +39,6 @@ class Session extends Model
 
     public function messages(): HasMany
     {
-        return $this->hasMany(Message::class)->orderBy('emitted_at');
+        return $this->hasMany(Message::class)->orderBy('created_at');
     }
 }

@@ -11,9 +11,11 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('path');                              // chemin local absolu du projet
-            $table->string('git_remote')->nullable();           // URL du remote Git
+            $table->string('path');
             $table->string('default_branch')->default('main');
+            $table->string('stack')->nullable();
+            $table->text('description')->nullable();
+            $table->string('git_remote')->nullable();
             $table->json('metadata')->nullable();
             $table->timestamps();
         });
