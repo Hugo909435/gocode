@@ -17,6 +17,8 @@ class Project extends Model
         'stack',
         'description',
         'git_remote',
+        'clone_status',
+        'clone_error',
         'metadata',
     ];
 

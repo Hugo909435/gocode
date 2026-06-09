@@ -1,4 +1,5 @@
 <template>
+  <div class="crt-overlay"></div>
   <RouterView />
 </template>
 

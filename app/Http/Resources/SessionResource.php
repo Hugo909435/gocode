@@ -23,6 +23,7 @@ class SessionResource extends JsonResource
             'ended_at'            => $this->ended_at,
             'created_at'          => $this->created_at,
             'updated_at'          => $this->updated_at,
+            'project'             => new ProjectResource($this->whenLoaded('project')),
             'messages'            => MessageResource::collection($this->whenLoaded('messages')),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Agent;
 
+use App\Agent\Drivers\ClaudeCodeDriver;
 use App\Agent\Drivers\MockAgentDriver;
 use App\Contracts\AgentDriverContract;
 use InvalidArgumentException;
@@ -21,10 +22,13 @@ class AgentManager
     protected function createDriver(string $name): AgentDriverContract
     {
         return match ($name) {
-            'mock'  => new MockAgentDriver(
+            'mock' => new MockAgentDriver(
                 dispatcher: app(AgentEventDispatcher::class),
                 scenario: config('agent.drivers.mock.scenario', 'success'),
                 delayMs: config('agent.drivers.mock.delay_ms', 1000),
+            ),
+            'claude-code' => new ClaudeCodeDriver(
+                dispatcher: app(AgentEventDispatcher::class),
             ),
             default => throw new InvalidArgumentException("Agent driver [{$name}] is not supported."),
         };

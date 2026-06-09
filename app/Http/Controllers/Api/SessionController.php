@@ -11,7 +11,9 @@ use App\Http\Resources\SessionResource;
 use App\Models\Project;
 use App\Models\Session;
 use App\Services\SessionService;
+use App\Http\Resources\MessageResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SessionController extends Controller
 {
@@ -28,6 +30,12 @@ class SessionController extends Controller
 
     public function store(StoreSessionRequest $request, Project $project): JsonResponse
     {
+        if (! $project->path || ! is_dir($project->path)) {
+            return response()->json([
+                'message' => 'Ce projet n\'a pas de chemin local valide. Configurez un chemin ou liez-le à GitHub avant de démarrer une session.',
+            ], 422);
+        }
+
         $session = $this->service->create($project, $request->validated());
 
         return response()->json(['data' => new SessionResource($session)], 201);
@@ -35,7 +43,7 @@ class SessionController extends Controller
 
     public function show(Session $session): JsonResponse
     {
-        $session->load('messages');
+        $session->load(['messages', 'project']);
 
         return response()->json(['data' => new SessionResource($session)]);
     }
@@ -74,5 +82,27 @@ class SessionController extends Controller
         $session = $this->service->update($session, $request->validated());
 
         return response()->json(['data' => new SessionResource($session)]);
+    }
+
+    /**
+     * Retourne les nouveaux messages depuis le curseur donné + le statut de la session.
+     * Utilisé par le frontend en polling (compatible serveur mono-processus Windows).
+     *
+     * GET /api/sessions/{session}/poll?cursor=0
+     */
+    public function poll(Request $request, Session $session): JsonResponse
+    {
+        $cursor   = (int) $request->query('cursor', 0);
+        $messages = $session->messages()
+            ->where('id', '>', $cursor)
+            ->orderBy('id')
+            ->get();
+
+        $session->load('project');
+
+        return response()->json([
+            'session'  => new SessionResource($session),
+            'messages' => MessageResource::collection($messages),
+        ]);
     }
 }

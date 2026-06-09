@@ -4,6 +4,88 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --font-display: 'VT323', monospace;
+
+    --color-primary: #00ff41;
+    --color-primary-dim: #003b00;
+    --color-bg-terminal: #000000;
+    --color-surface-terminal: #0a0a0a;
+    --color-danger: #ff003c;
+    --color-warning: #f3ff00;
+
+    --radius-none: 0;
+}
+
+@layer base {
+    body {
+        @apply font-sans;
+        background-color: var(--color-bg-terminal);
+        color: var(--color-primary);
+        overflow-x: hidden;
+    }
+
+    /* Scrollbar hacké */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: var(--color-bg-terminal);
+    }
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-primary-dim);
+        border: 1px solid var(--color-primary);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-primary);
+    }
+}
+
+@layer utilities {
+    .glow {
+        text-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary);
+    }
+    .glow-box {
+        box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary-dim);
+    }
+    .crt-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+        z-index: 9999;
+        background-size: 100% 4px, 3px 100%;
+        pointer-events: none;
+        opacity: 0.15;
+    }
+    .flicker {
+        animation: flicker 0.15s infinite;
+    }
+}
+
+@keyframes flicker {
+    0% { opacity: 0.97; }
+    5% { opacity: 0.95; }
+    10% { opacity: 0.9; }
+    15% { opacity: 0.95; }
+    20% { opacity: 0.98; }
+    25% { opacity: 0.95; }
+    30% { opacity: 0.9; }
+    35% { opacity: 0.95; }
+    40% { opacity: 0.98; }
+    45% { opacity: 0.95; }
+    50% { opacity: 0.9; }
+    55% { opacity: 0.95; }
+    60% { opacity: 0.98; }
+    65% { opacity: 0.95; }
+    70% { opacity: 0.9; }
+    75% { opacity: 0.95; }
+    80% { opacity: 0.98; }
+    85% { opacity: 0.95; }
+    90% { opacity: 0.9; }
+    95% { opacity: 0.95; }
+    100% { opacity: 0.98; }
 }

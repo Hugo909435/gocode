@@ -15,11 +15,6 @@ const routes = [
         children: [
             {
                 path: '',
-                name: 'dashboard',
-                component: () => import('@/pages/DashboardPage.vue'),
-            },
-            {
-                path: 'projects',
                 name: 'projects',
                 component: () => import('@/pages/ProjectsPage.vue'),
             },
@@ -32,6 +27,16 @@ const routes = [
                 path: 'sessions/:id',
                 name: 'session',
                 component: () => import('@/pages/SessionPage.vue'),
+            },
+            {
+                path: 'multi/:ids',
+                name: 'multi',
+                component: () => import('@/pages/SplitView.vue'),
+            },
+            {
+                path: 'settings',
+                name: 'settings',
+                component: () => import('@/pages/SettingsPage.vue'),
             },
         ],
     },
@@ -55,7 +60,7 @@ router.beforeEach(async (to) => {
     }
 
     if (to.meta.guest && auth.user) {
-        return { name: 'dashboard' };
+        return { name: 'projects' };
     }
 });
 

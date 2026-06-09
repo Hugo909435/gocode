@@ -25,7 +25,8 @@ export default defineConfig({
         },
     },
     server: {
-        // Proxy pour que Vite (port 5173) transmette les appels API au backend Laravel (port 8000)
+        port: 5173,
+        strictPort: true, // échoue si 5173 est pris plutôt que de changer de port
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
