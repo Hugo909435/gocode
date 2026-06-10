@@ -110,8 +110,7 @@
 
                     <div class="flex items-center gap-2 pt-4 border-t border-primary/10">
                         <RouterLink
-                            :to="{ name: 'project-sessions' }"
-                            :params="{ id: project.id }"
+                            :to="{ name: 'project-sessions', params: { id: project.id } }"
                             class="flex-1 px-3 py-1.5 text-[10px] text-center font-bold text-primary/70 hover:text-black bg-primary/5 hover:bg-primary border border-primary/20 hover:border-primary transition-all theme-text rounded-[--radius-none]"
                         >
                             Sessions
