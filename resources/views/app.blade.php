@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=VT323&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="antialiased bg-black text-[#00ff41]">
+<body class="antialiased">
     <div id="app"></div>
 </body>
 </html>

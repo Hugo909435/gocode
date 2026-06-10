@@ -45,7 +45,7 @@ class MockAgentDriver implements AgentDriverContract
      * Avec QUEUE_CONNECTION=sync le job s'exécute immédiatement (bloquant).
      * Avec QUEUE_CONNECTION=database le job part en arrière-plan.
      */
-    public function sendInstruction(Session $session, string $instruction, string $mode): void
+    public function sendInstruction(Session $session, string $instruction, string $mode, array $skills = []): void
     {
         MockAgentJob::dispatch(
             sessionId: $session->id,

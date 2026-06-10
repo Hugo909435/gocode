@@ -40,9 +40,9 @@ class ClaudeCodeDriver implements AgentDriverContract
         ));
     }
 
-    public function sendInstruction(Session $session, string $instruction, string $mode): void
+    public function sendInstruction(Session $session, string $instruction, string $mode, array $skills = []): void
     {
-        ClaudeCodeJob::dispatch($session->id, $instruction, $mode);
+        ClaudeCodeJob::dispatch($session->id, $instruction, $mode, $skills);
     }
 
     /**

@@ -3,9 +3,11 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
-@theme {
-    --font-sans: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+:root {
+    /* Hacker Theme (Default) */
+    --font-sans: 'JetBrains Mono', ui-monospace;
     --font-display: 'VT323', monospace;
+    --font-mono: 'JetBrains Mono', ui-monospace;
 
     --color-primary: #00ff41;
     --color-primary-dim: #003b00;
@@ -13,8 +15,46 @@
     --color-surface-terminal: #0a0a0a;
     --color-danger: #ff003c;
     --color-warning: #f3ff00;
+    --color-text-muted: rgba(0, 255, 65, 0.4);
 
+    --text-transform: uppercase;
+    --letter-spacing: 0.1em;
     --radius-none: 0;
+    --border-opacity: 0.3;
+}
+
+.theme-modern {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace;
+
+    --color-primary: #6366f1; /* Indigo */
+    --color-primary-dim: #e0e7ff;
+    --color-bg-terminal: #ffffff;
+    --color-surface-terminal: #f8fafc;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-text-muted: #64748b;
+
+    --text-transform: none;
+    --letter-spacing: normal;
+    --radius-none: 0.75rem;
+    --border-opacity: 0.1;
+}
+
+@theme {
+    --font-sans: var(--font-sans);
+    --font-display: var(--font-display);
+    --font-mono: var(--font-mono);
+
+    --color-primary: var(--color-primary);
+    --color-primary-dim: var(--color-primary-dim);
+    --color-bg-terminal: var(--color-bg-terminal);
+    --color-surface-terminal: var(--color-surface-terminal);
+    --color-danger: var(--color-danger);
+    --color-warning: var(--color-warning);
+
+    --radius-none: var(--radius-none);
 }
 
 @layer base {
@@ -23,18 +63,26 @@
         background-color: var(--color-bg-terminal);
         color: var(--color-primary);
         overflow-x: hidden;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    
+    .theme-modern body {
+        color: #1e293b;
     }
 
-    /* Scrollbar hacké */
+    /* Scrollbar */
     ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
     }
     ::-webkit-scrollbar-track {
         background: var(--color-bg-terminal);
     }
     ::-webkit-scrollbar-thumb {
         background: var(--color-primary-dim);
+        border-radius: var(--radius-none);
+    }
+    .theme-hacker ::webkit-scrollbar-thumb {
         border: 1px solid var(--color-primary);
     }
     ::-webkit-scrollbar-thumb:hover {
@@ -43,12 +91,27 @@
 }
 
 @layer utilities {
+    .theme-text {
+        text-transform: var(--text-transform);
+        letter-spacing: var(--letter-spacing);
+    }
+    
     .glow {
         text-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary);
     }
+    .theme-modern .glow {
+        text-shadow: none;
+    }
+
     .glow-box {
         box-shadow: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary-dim);
     }
+    .theme-modern .glow-box {
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        border-width: 1px;
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
     .crt-overlay {
         position: fixed;
         top: 0;

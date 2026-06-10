@@ -58,5 +58,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/sessions/{session}/instruction', [SessionController::class, 'sendInstruction']);
     Route::post('/sessions/{session}/confirm', [SessionController::class, 'confirm']);
     Route::post('/sessions/{session}/stop', [SessionController::class, 'stop']);
+    Route::delete('/sessions/{session}/messages', [SessionController::class, 'clearMessages']);
     Route::patch('/sessions/{session}', [SessionController::class, 'update']);
 });

@@ -15,8 +15,10 @@ class SendInstructionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'instruction' => ['required', 'string', 'max:50000'],
-            'mode'        => ['nullable', 'string', Rule::in(['read', 'plan', 'execute'])],
+            'instruction'  => ['required', 'string', 'max:50000'],
+            'mode'         => ['nullable', 'string', Rule::in(['read', 'plan', 'execute'])],
+            'skills'       => ['nullable', 'array'],
+            'skills.*'     => ['string', Rule::in(['seo-audit', 'caveman', 'frontend-design', 'humanizer-zh'])],
         ];
     }
 }

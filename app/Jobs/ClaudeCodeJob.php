@@ -37,6 +37,7 @@ class ClaudeCodeJob implements ShouldQueue
         public readonly string $sessionId,
         public readonly string $instruction,
         public readonly string $mode,
+        public readonly array $skills = [],
     ) {}
 
     public function handle(AgentEventDispatcher $dispatcher): void
@@ -61,7 +62,7 @@ class ClaudeCodeJob implements ShouldQueue
         }
 
         $process = new Process(
-            command: $this->buildCommand(),
+            command: $this->buildCommand($session->project),
             cwd: $projectPath,
             env: $this->buildEnv(),
             timeout: config('agent.drivers.claude-code.timeout', 300),
@@ -473,7 +474,7 @@ class ClaudeCodeJob implements ShouldQueue
     // Construction de la commande
     // -------------------------------------------------------------------------
 
-    private function buildCommand(): array
+    private function buildCommand(\App\Models\Project $project): array
     {
         $config = config('agent.drivers.claude-code', []);
         $binary = $config['binary'] ?? 'claude';
@@ -504,9 +505,90 @@ class ClaudeCodeJob implements ShouldQueue
                 break;
         }
 
+        // Contexte projet injecté systématiquement pour que Claude Code sache
+        // sur quel projet il travaille, indépendamment du CLAUDE.md global.
+        $cmd[] = '--appendSystemPrompt';
+        $cmd[] = $this->buildProjectContextPrompt($project);
+
+        $skillPrompt = $this->buildSkillPrompt();
+        if ($skillPrompt !== '') {
+            $cmd[] = '--appendSystemPrompt';
+            $cmd[] = $skillPrompt;
+        }
+
         $cmd[] = $this->instruction;
 
         return $cmd;
+    }
+
+    private function buildProjectContextPrompt(\App\Models\Project $project): string
+    {
+        $lines = ["You are working on project: **{$project->name}**."];
+        $lines[] = "Project path: {$project->path}";
+
+        if ($project->stack) {
+            $lines[] = "Stack: {$project->stack}";
+        }
+
+        if ($project->description) {
+            $lines[] = "Description: {$project->description}";
+        }
+
+        if ($project->git_remote) {
+            $lines[] = "Git remote: {$project->git_remote}";
+        }
+
+        $lines[] = 'Focus exclusively on this project\'s codebase. Do not reference or describe any other application.';
+
+        return implode("\n", $lines);
+    }
+
+    private function buildSkillPrompt(): string
+    {
+        if (empty($this->skills)) {
+            return '';
+        }
+
+        $parts = [];
+
+        foreach ($this->skills as $skill) {
+            $content = $this->readSkillContent($skill);
+            if ($content !== '') {
+                $parts[] = $content;
+            }
+        }
+
+        return implode("\n\n---\n\n", $parts);
+    }
+
+    private function readSkillContent(string $skill): string
+    {
+        $searchPaths = [
+            // Skills projet courant
+            base_path(".claude/skills/{$skill}/SKILL.md"),
+            // Skills globaux utilisateur (~/.claude/skills/)
+            rtrim($_SERVER['HOME'] ?? $_SERVER['USERPROFILE'] ?? '', '/\\') . DIRECTORY_SEPARATOR . ".claude/skills/{$skill}/SKILL.md",
+        ];
+
+        foreach ($searchPaths as $path) {
+            if (! file_exists($path)) {
+                continue;
+            }
+
+            $raw = file_get_contents($path);
+
+            // Retire le frontmatter YAML (--- ... ---)
+            if (str_starts_with($raw, '---')) {
+                $end = strpos($raw, '---', 3);
+                if ($end !== false) {
+                    $raw = ltrim(substr($raw, $end + 3));
+                }
+            }
+
+            return trim($raw);
+        }
+
+        return '';
     }
 
     private function buildEnv(): array

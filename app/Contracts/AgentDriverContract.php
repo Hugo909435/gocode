@@ -14,9 +14,10 @@ interface AgentDriverContract
     /**
      * Envoie une instruction à l'agent dans le contexte d'une session.
      *
-     * @param  string  $mode  'read' | 'plan' | 'execute'
+     * @param  string  $mode    'read' | 'plan' | 'execute'
+     * @param  array   $skills  Slugs des skills actifs (ex. ['frontend-design', 'caveman'])
      */
-    public function sendInstruction(Session $session, string $instruction, string $mode): void;
+    public function sendInstruction(Session $session, string $instruction, string $mode, array $skills = []): void;
 
     /**
      * Répond à une demande de confirmation émise par l'agent.

@@ -37,7 +37,7 @@ class SessionService
      * (ex. l'utilisateur change de mode pour une instruction ponctuelle).
      * On met à jour la session si le mode est explicitement fourni.
      */
-    public function sendInstruction(Session $session, string $instruction, ?string $mode): Message
+    public function sendInstruction(Session $session, string $instruction, ?string $mode, array $skills = []): Message
     {
         $effectiveMode = $mode ?? $session->mode;
 
@@ -54,9 +54,10 @@ class SessionService
             'role'    => 'user',
             'type'    => 'text',
             'content' => $instruction,
+            'meta'    => $skills ? ['skills' => $skills] : null,
         ]);
 
-        $this->driver->sendInstruction($session, $instruction, $effectiveMode);
+        $this->driver->sendInstruction($session, $instruction, $effectiveMode, $skills);
 
         return $message;
     }

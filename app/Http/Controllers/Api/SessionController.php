@@ -54,6 +54,7 @@ class SessionController extends Controller
             $session,
             $request->input('instruction'),
             $request->input('mode'),
+            $request->input('skills', []),
         );
 
         return response()->json(['data' => new SessionResource($session->fresh())]);
@@ -82,6 +83,14 @@ class SessionController extends Controller
         $session = $this->service->update($session, $request->validated());
 
         return response()->json(['data' => new SessionResource($session)]);
+    }
+
+    public function clearMessages(Session $session): JsonResponse
+    {
+        $session->messages()->delete();
+        $session->update(['status' => 'idle']);
+
+        return response()->json(['data' => new SessionResource($session->fresh())]);
     }
 
     /**
