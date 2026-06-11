@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,7 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // On s'assure que la session est démarrée pour toutes les routes API
         // car LoginController l'utilise pour régénérer la session.
         $middleware->appendToGroup('api', [
-            \Illuminate\Session\Middleware\StartSession::class,
+            StartSession::class,
         ]);
 
         // Sans cela, une requête non-JSON non authentifiée (ex. EventSource SSE)

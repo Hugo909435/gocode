@@ -45,19 +45,21 @@ class MockAgentJob implements ShouldQueue
     {
         if ($this->resumed) {
             $this->handleResume($dispatcher);
+
             return;
         }
 
         if ($this->scenario === 'error') {
             $this->handleErrorScenario($dispatcher);
+
             return;
         }
 
         match ($this->mode) {
-            'read'    => $this->handleReadMode($dispatcher),
-            'plan'    => $this->handlePlanMode($dispatcher),
+            'read' => $this->handleReadMode($dispatcher),
+            'plan' => $this->handlePlanMode($dispatcher),
             'execute' => $this->handleExecuteMode($dispatcher),
-            default   => $this->handleReadMode($dispatcher),
+            default => $this->handleReadMode($dispatcher),
         };
     }
 
@@ -101,8 +103,8 @@ class MockAgentJob implements ShouldQueue
         $this->setStatus('awaiting_confirmation');
         $this->emit($d, AgentEventType::ConfirmationRequest, [
             'action_id' => $actionId,
-            'message'   => 'Valider ce plan ?',
-            'type'      => 'plan',
+            'message' => 'Valider ce plan ?',
+            'type' => 'plan',
         ]);
         // S'arrête ici — reprend via confirmAction() → MockAgentJob(resumed=true)
     }
@@ -128,53 +130,53 @@ class MockAgentJob implements ShouldQueue
 
         $this->emit($d, AgentEventType::Log, [
             'message' => 'Analyse des fichiers concernés par la demande…',
-            'level'   => 'info',
+            'level' => 'info',
         ]);
         $this->emit($d, AgentEventType::Log, [
             'message' => 'Résolution des dépendances et imports manquants…',
-            'level'   => 'info',
+            'level' => 'info',
         ]);
 
         $this->emit($d, AgentEventType::Terminal, [
             'command' => 'npm run build',
-            'output'  => $this->fakeNpmBuildOutput(),
+            'output' => $this->fakeNpmBuildOutput(),
         ]);
 
         $this->pause(1.0);
 
         $this->emit($d, AgentEventType::ToolCall, [
-            'tool'   => 'edit_file',
+            'tool' => 'edit_file',
             'params' => ['path' => 'app/Http/Controllers/Api/SessionController.php'],
         ]);
 
         $this->emit($d, AgentEventType::FileChange, [
-            'file'      => 'app/Http/Controllers/Api/SessionController.php',
+            'file' => 'app/Http/Controllers/Api/SessionController.php',
             'additions' => 7,
             'deletions' => 2,
-            'diff'      => $this->fakePhpDiff(),
+            'diff' => $this->fakePhpDiff(),
         ]);
 
         $this->pause(0.5);
 
         $this->emit($d, AgentEventType::ToolCall, [
-            'tool'   => 'edit_file',
+            'tool' => 'edit_file',
             'params' => ['path' => 'resources/js/components/SessionChat.vue'],
         ]);
 
         $this->emit($d, AgentEventType::FileChange, [
-            'file'      => 'resources/js/components/SessionChat.vue',
+            'file' => 'resources/js/components/SessionChat.vue',
             'additions' => 10,
             'deletions' => 3,
-            'diff'      => $this->fakeVueDiff(),
+            'diff' => $this->fakeVueDiff(),
         ]);
 
         $this->pause(0.5);
 
         $this->emit($d, AgentEventType::Cost, [
-            'input_tokens'  => 4821,
+            'input_tokens' => 4821,
             'output_tokens' => 1247,
-            'cost_usd'      => 0.019230,
-            'model'         => 'claude-sonnet-4-6',
+            'cost_usd' => 0.019230,
+            'model' => 'claude-sonnet-4-6',
         ]);
 
         $actionId = (string) Str::uuid();
@@ -182,9 +184,9 @@ class MockAgentJob implements ShouldQueue
         $this->setStatus('awaiting_confirmation');
         $this->emit($d, AgentEventType::ConfirmationRequest, [
             'action_id' => $actionId,
-            'message'   => 'Committer ces changements ?',
-            'type'      => 'commit',
-            'files'     => [
+            'message' => 'Committer ces changements ?',
+            'type' => 'commit',
+            'files' => [
                 'app/Http/Controllers/Api/SessionController.php',
                 'resources/js/components/SessionChat.vue',
             ],
@@ -199,7 +201,7 @@ class MockAgentJob implements ShouldQueue
 
         $this->emit($d, AgentEventType::Terminal, [
             'command' => 'git add -A && git commit -m "feat: implement requested changes"',
-            'output'  => "[mock] [main 3a8f12c] feat: implement requested changes\n 2 files changed, 17 insertions(+), 5 deletions(-)",
+            'output' => "[mock] [main 3a8f12c] feat: implement requested changes\n 2 files changed, 17 insertions(+), 5 deletions(-)",
         ]);
 
         $this->pause(0.5);
@@ -219,7 +221,7 @@ class MockAgentJob implements ShouldQueue
         Session::where('id', $this->sessionId)->update(['ended_at' => now()]);
         $this->emit($d, AgentEventType::Error, [
             'message' => 'Erreur irrécupérable : le modèle n\'a pas pu traiter l\'instruction. Vérifiez les logs pour plus de détails.',
-            'code'    => 'MODEL_ERROR',
+            'code' => 'MODEL_ERROR',
         ]);
     }
 
@@ -257,7 +259,7 @@ class MockAgentJob implements ShouldQueue
     {
         Cache::put("mock.pending.{$this->sessionId}", [
             'action_id' => $actionId,
-            'type'      => $type,
+            'type' => $type,
         ], now()->addHour());
     }
 
@@ -288,22 +290,22 @@ class MockAgentJob implements ShouldQueue
         $instruction = Str::limit($this->instruction, 120);
 
         return "J'ai analysé le projet. Concernant votre demande : « {$instruction} »\n\n"
-            . "Le code actuel suit les conventions Laravel avec Sanctum pour l'authentification, "
-            . "SSE pour le temps réel (polling DB avec curseur), et une couche `AgentDriverContract` "
-            . "pour isoler le moteur IA. En mode `read` je ne modifie aucun fichier — "
-            . "basculez en mode `plan` ou `execute` pour aller plus loin.";
+            ."Le code actuel suit les conventions Laravel avec Sanctum pour l'authentification, "
+            .'SSE pour le temps réel (polling DB avec curseur), et une couche `AgentDriverContract` '
+            .'pour isoler le moteur IA. En mode `read` je ne modifie aucun fichier — '
+            .'basculez en mode `plan` ou `execute` pour aller plus loin.';
     }
 
     private function fakeNpmBuildOutput(): string
     {
         return "> gocode@1.0.0 build\n"
-            . "> vite build\n\n"
-            . "vite v5.2.8 building for production...\n"
-            . "✓ 142 modules transformed.\n"
-            . "dist/index.html                  0.43 kB │ gzip:  0.28 kB\n"
-            . "dist/assets/index-DiwrgTda.css  12.40 kB │ gzip:  3.21 kB\n"
-            . "dist/assets/index-BxAZzMoa.js  184.92 kB │ gzip: 68.13 kB\n"
-            . "✓ built in 3.24s";
+            ."> vite build\n\n"
+            ."vite v5.2.8 building for production...\n"
+            ."✓ 142 modules transformed.\n"
+            ."dist/index.html                  0.43 kB │ gzip:  0.28 kB\n"
+            ."dist/assets/index-DiwrgTda.css  12.40 kB │ gzip:  3.21 kB\n"
+            ."dist/assets/index-BxAZzMoa.js  184.92 kB │ gzip: 68.13 kB\n"
+            .'✓ built in 3.24s';
     }
 
     private function fakePhpDiff(): string

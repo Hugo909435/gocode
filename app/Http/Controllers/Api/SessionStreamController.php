@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class SessionStreamController extends Controller
 {
     private const POLL_INTERVAL_US = 500_000; // 500 ms
-    private const KEEPALIVE_AFTER  = 30;      // 30 × 500 ms = 15 s
+
+    private const KEEPALIVE_AFTER = 30;      // 30 × 500 ms = 15 s
 
     public function __invoke(Request $request, Session $session): StreamedResponse
     {
@@ -39,16 +40,16 @@ class SessionStreamController extends Controller
                     $terminal = false;
 
                     foreach ($messages as $message) {
-                        $cursor    = $message->id;
+                        $cursor = $message->id;
                         $eventType = $message->meta['event_type'] ?? $message->type;
                         $timestamp = $message->meta['timestamp'] ?? $message->created_at->toIso8601String();
-                        $payload   = json_decode($message->content, true) ?? $message->content;
+                        $payload = json_decode($message->content, true) ?? $message->content;
 
                         $data = json_encode([
-                            'type'       => $eventType,
+                            'type' => $eventType,
                             'session_id' => $message->session_id,
-                            'timestamp'  => $timestamp,
-                            'payload'    => $payload,
+                            'timestamp' => $timestamp,
+                            'payload' => $payload,
                         ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
                         echo "id: {$message->id}\n";
@@ -96,10 +97,10 @@ class SessionStreamController extends Controller
             },
             status: 200,
             headers: [
-                'Content-Type'      => 'text/event-stream; charset=utf-8',
-                'Cache-Control'     => 'no-cache, no-store',
+                'Content-Type' => 'text/event-stream; charset=utf-8',
+                'Cache-Control' => 'no-cache, no-store',
                 'X-Accel-Buffering' => 'no', // Désactive le buffering nginx
-                'Connection'        => 'keep-alive',
+                'Connection' => 'keep-alive',
             ],
         );
     }

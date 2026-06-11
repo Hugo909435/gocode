@@ -14,12 +14,13 @@ class SessionStreamTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Project $project;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user    = User::factory()->create();
+        $this->user = User::factory()->create();
         $this->project = Project::factory()->create();
     }
 
@@ -35,21 +36,21 @@ class SessionStreamTest extends TestCase
     {
         $dbType = match ($eventType) {
             'message' => 'text',
-            'done'    => 'status',
-            default   => $eventType,
+            'done' => 'status',
+            default => $eventType,
         };
         $role = match ($eventType) {
-            'message', 'plan'                        => 'agent',
-            'tool_call', 'terminal', 'file_change'   => 'tool',
-            default                                  => 'system',
+            'message', 'plan' => 'agent',
+            'tool_call', 'terminal', 'file_change' => 'tool',
+            default => 'system',
         };
 
         return Message::create([
             'session_id' => $session->id,
-            'role'       => $role,
-            'type'       => $dbType,
-            'content'    => json_encode($payload),
-            'meta'       => ['event_type' => $eventType, 'timestamp' => now()->toIso8601String()],
+            'role' => $role,
+            'type' => $dbType,
+            'content' => json_encode($payload),
+            'meta' => ['event_type' => $eventType, 'timestamp' => now()->toIso8601String()],
         ]);
     }
 
@@ -105,19 +106,19 @@ class SessionStreamTest extends TestCase
     {
         $session = $this->makeSession();
 
-        $msg  = $this->insertMessage($session, 'message', ['text' => 'Hello']);
+        $msg = $this->insertMessage($session, 'message', ['text' => 'Hello']);
         $done = $this->insertMessage($session, 'done');
 
         $content = $this->streamContent("/api/sessions/{$session->id}/stream");
 
         // Message normal
         $this->assertStringContainsString("id: {$msg->id}", $content);
-        $this->assertStringContainsString("event: message", $content);
+        $this->assertStringContainsString('event: message', $content);
         $this->assertStringContainsString('"text":"Hello"', $content);
 
         // Événement done — le flux doit s'arrêter là
         $this->assertStringContainsString("id: {$done->id}", $content);
-        $this->assertStringContainsString("event: done", $content);
+        $this->assertStringContainsString('event: done', $content);
     }
 
     public function test_stream_closes_on_error_event(): void
@@ -129,7 +130,7 @@ class SessionStreamTest extends TestCase
         $content = $this->streamContent("/api/sessions/{$session->id}/stream");
 
         $this->assertStringContainsString("id: {$error->id}", $content);
-        $this->assertStringContainsString("event: error", $content);
+        $this->assertStringContainsString('event: error', $content);
     }
 
     public function test_each_event_contains_full_wire_format(): void
@@ -156,7 +157,7 @@ class SessionStreamTest extends TestCase
         $session = $this->makeSession();
 
         $before = $this->insertMessage($session, 'message', ['text' => 'Before cursor']);
-        $after  = $this->insertMessage($session, 'message', ['text' => 'After cursor']);
+        $after = $this->insertMessage($session, 'message', ['text' => 'After cursor']);
         $this->insertMessage($session, 'done');
 
         $content = $this->streamContent(
@@ -185,15 +186,15 @@ class SessionStreamTest extends TestCase
     {
         $session = $this->makeSession();
 
-        $log  = $this->insertMessage($session, 'log', ['text' => 'Building...']);
+        $log = $this->insertMessage($session, 'log', ['text' => 'Building...']);
         $term = $this->insertMessage($session, 'terminal', ['output' => 'make build']);
         $done = $this->insertMessage($session, 'done');
 
         $content = $this->streamContent("/api/sessions/{$session->id}/stream");
 
-        $this->assertStringContainsString("event: log", $content);
-        $this->assertStringContainsString("event: terminal", $content);
-        $this->assertStringContainsString("event: done", $content);
+        $this->assertStringContainsString('event: log', $content);
+        $this->assertStringContainsString('event: terminal', $content);
+        $this->assertStringContainsString('event: done', $content);
         // Vérification de l'ordre des ids
         $this->assertGreaterThan(strpos($content, "id: {$log->id}"), strpos($content, "id: {$term->id}"));
         $this->assertGreaterThan(strpos($content, "id: {$term->id}"), strpos($content, "id: {$done->id}"));

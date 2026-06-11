@@ -37,19 +37,19 @@ class CloneRepositoryJob implements ShouldQueue
             }
 
             $authenticatedUrl = $github->buildAuthenticatedUrl($this->repoUrl, $pat);
-            $localPath        = $github->getClonePath($this->projectId);
+            $localPath = $github->getClonePath($this->projectId);
 
             $git->cloneRepo($authenticatedUrl, $localPath);
 
             $project->update([
-                'path'         => $localPath,
+                'path' => $localPath,
                 'clone_status' => 'cloned',
-                'clone_error'  => null,
+                'clone_error' => null,
             ]);
         } catch (\Exception $e) {
             $project->update([
                 'clone_status' => 'error',
-                'clone_error'  => $e->getMessage(),
+                'clone_error' => $e->getMessage(),
             ]);
         }
     }

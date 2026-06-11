@@ -20,6 +20,7 @@ class Session extends Model
         'mode',
         'status',
         'initial_instruction',
+        'claude_session_id',
         'input_tokens',
         'output_tokens',
         'cost_usd',
@@ -29,7 +30,7 @@ class Session extends Model
 
     protected $casts = [
         'started_at' => 'datetime',
-        'ended_at'   => 'datetime',
+        'ended_at' => 'datetime',
     ];
 
     public function project(): BelongsTo

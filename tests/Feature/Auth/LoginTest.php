@@ -17,7 +17,7 @@ class LoginTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'email'    => 'test@gocode.local',
+            'email' => 'test@gocode.local',
             'password' => bcrypt('secret123'),
         ]);
     }
@@ -32,20 +32,20 @@ class LoginTest extends TestCase
     public function test_rejects_login_with_invalid_credentials(): void
     {
         $this->postJson('/api/login', [
-            'email'    => 'test@gocode.local',
+            'email' => 'test@gocode.local',
             'password' => 'wrong-password',
         ])->assertUnprocessable()
-          ->assertJsonValidationErrors(['email']);
+            ->assertJsonValidationErrors(['email']);
     }
 
     public function test_logs_in_and_returns_authenticated_user(): void
     {
         $this->postJson('/api/login', [
-            'email'    => 'test@gocode.local',
+            'email' => 'test@gocode.local',
             'password' => 'secret123',
         ])->assertOk()
-          ->assertJsonPath('data.email', 'test@gocode.local')
-          ->assertJsonStructure(['data' => ['id', 'name', 'email']]);
+            ->assertJsonPath('data.email', 'test@gocode.local')
+            ->assertJsonStructure(['data' => ['id', 'name', 'email']]);
     }
 
     public function test_returns_401_on_protected_routes_when_unauthenticated(): void

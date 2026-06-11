@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
         User::firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@gocode.local')],
             [
-                'name'     => 'Admin',
+                'name' => 'Admin',
                 'password' => Hash::make(env('ADMIN_PASSWORD', 'password')),
             ]
         );
@@ -35,12 +35,12 @@ class DatabaseSeeder extends Seeder
     {
         // Projet principal de démo avec whitelist de commandes
         $mainProject = Project::factory()->create([
-            'name'           => 'gocode',
-            'path'           => base_path(),
+            'name' => 'gocode',
+            'path' => base_path(),
             'default_branch' => 'main',
-            'stack'          => 'Laravel/Vue',
-            'description'    => 'Interface de pilotage d\'un agent IA local.',
-            'git_remote'     => 'https://github.com/hbeignon/gocode.git',
+            'stack' => 'Laravel/Vue',
+            'description' => 'Interface de pilotage d\'un agent IA local.',
+            'git_remote' => 'https://github.com/hbeignon/gocode.git',
         ]);
 
         CommandWhitelist::insert([
@@ -58,37 +58,37 @@ class DatabaseSeeder extends Seeder
         // Session terminée avec historique complet
         $doneSession = Session::factory()->done()->create([
             'project_id' => $mainProject->id,
-            'title'       => 'Initialisation du modèle de données',
-            'mode'        => 'execute',
+            'title' => 'Initialisation du modèle de données',
+            'mode' => 'execute',
         ]);
 
         Message::factory()->userMessage()->create([
             'session_id' => $doneSession->id,
-            'content'    => 'Crée les migrations et les modèles Eloquent pour le projet gocode.',
+            'content' => 'Crée les migrations et les modèles Eloquent pour le projet gocode.',
         ]);
         Message::factory()->agentMessage()->create([
             'session_id' => $doneSession->id,
-            'content'    => "Je vais créer les migrations pour les tables `projects`, `agent_sessions`, `messages`, `command_whitelist` et `settings`.",
+            'content' => 'Je vais créer les migrations pour les tables `projects`, `agent_sessions`, `messages`, `command_whitelist` et `settings`.',
         ]);
         Message::factory()->fileChange()->create(['session_id' => $doneSession->id]);
         Message::factory()->create([
             'session_id' => $doneSession->id,
-            'role'        => 'system',
-            'type'        => 'terminal',
-            'content'     => "$ php artisan migrate\nMigration table created successfully.\nMigrating: 2026_06_08_140000_create_projects_table\nMigrated:  2026_06_08_140000_create_projects_table\n...",
+            'role' => 'system',
+            'type' => 'terminal',
+            'content' => "$ php artisan migrate\nMigration table created successfully.\nMigrating: 2026_06_08_140000_create_projects_table\nMigrated:  2026_06_08_140000_create_projects_table\n...",
         ]);
         Message::factory()->create([
             'session_id' => $doneSession->id,
-            'role'        => 'system',
-            'type'        => 'status',
-            'content'     => 'done',
+            'role' => 'system',
+            'type' => 'status',
+            'content' => 'done',
         ]);
 
         // Session active (idle) prête à recevoir des instructions
         Session::factory()->idle()->create([
             'project_id' => $mainProject->id,
-            'title'       => 'Nouvelle session',
-            'mode'        => 'read',
+            'title' => 'Nouvelle session',
+            'mode' => 'read',
         ]);
 
         // Paramètres globaux par défaut

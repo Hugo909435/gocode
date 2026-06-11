@@ -15,7 +15,7 @@ class UpdateSessionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'mode'   => ['sometimes', 'string', Rule::in(['read', 'plan', 'execute'])],
+            'mode' => ['sometimes', 'string', Rule::in(['read', 'plan', 'execute'])],
             'status' => ['sometimes', 'string', Rule::in([
                 'idle', 'reading', 'planning', 'awaiting_confirmation',
                 'building', 'running', 'done', 'error',

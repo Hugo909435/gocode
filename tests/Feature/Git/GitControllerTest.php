@@ -13,7 +13,9 @@ class GitControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Project $project;
+
     private string $repoDir;
 
     protected function setUp(): void

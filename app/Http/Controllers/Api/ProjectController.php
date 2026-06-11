@@ -59,7 +59,7 @@ class ProjectController extends Controller
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
         $validated = $request->validated();
-        $gitInit   = (bool) ($validated['git_init'] ?? false);
+        $gitInit = (bool) ($validated['git_init'] ?? false);
         unset($validated['git_init']);
 
         $path = $validated['path'] ?? $project->path;

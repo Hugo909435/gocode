@@ -15,7 +15,7 @@ class ConfirmActionRequest extends FormRequest
     {
         return [
             'action_id' => ['required', 'string'],
-            'approved'  => ['required', 'boolean'],
+            'approved' => ['required', 'boolean'],
         ];
     }
 }

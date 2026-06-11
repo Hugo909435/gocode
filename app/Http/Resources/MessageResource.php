@@ -14,12 +14,12 @@ class MessageResource extends JsonResource
         $decoded = json_decode($this->content, true);
 
         return [
-            'id'         => $this->id,
+            'id' => $this->id,
             'session_id' => $this->session_id,
-            'role'       => $this->role,
-            'type'       => $this->type,
-            'content'    => $decoded ?? $this->content,
-            'meta'       => $this->meta,
+            'role' => $this->role,
+            'type' => $this->type,
+            'content' => $decoded ?? $this->content,
+            'meta' => $this->meta,
             'created_at' => $this->created_at,
         ];
     }

@@ -14,6 +14,7 @@ class SessionLifecycleTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Project $project;
 
     protected function setUp(): void
@@ -25,8 +26,9 @@ class SessionLifecycleTest extends TestCase
         // Aucun délai entre événements mock → tests instantanés
         config(['agent.drivers.mock.delay_ms' => 0]);
 
-        $this->user    = User::factory()->create();
-        $this->project = Project::factory()->create();
+        $this->user = User::factory()->create();
+        // Chemin réel : SessionController::store refuse (422) un path inexistant
+        $this->project = Project::factory()->create(['path' => sys_get_temp_dir()]);
     }
 
     public function test_requires_authentication_to_access_session_endpoints(): void
@@ -44,7 +46,7 @@ class SessionLifecycleTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson("/api/projects/{$this->project->id}/sessions", [
                 'title' => 'Test Session',
-                'mode'  => 'read',
+                'mode' => 'read',
             ]);
 
         $response->assertCreated()
@@ -57,8 +59,8 @@ class SessionLifecycleTest extends TestCase
         // MockDriver::startSession() émet un événement status idle
         $this->assertDatabaseHas('messages', [
             'session_id' => $response->json('data.id'),
-            'role'       => 'system',
-            'type'       => 'status',
+            'role' => 'system',
+            'type' => 'status',
         ]);
     }
 
@@ -90,7 +92,7 @@ class SessionLifecycleTest extends TestCase
         $sessionId = $this->actingAs($this->user)
             ->postJson("/api/projects/{$this->project->id}/sessions", [
                 'title' => 'Execute session',
-                'mode'  => 'execute',
+                'mode' => 'execute',
             ])
             ->assertCreated()
             ->json('data.id');
@@ -99,7 +101,7 @@ class SessionLifecycleTest extends TestCase
         $this->actingAs($this->user)
             ->postJson("/api/sessions/{$sessionId}/instruction", [
                 'instruction' => 'Ajoute un endpoint de recherche aux sessions',
-                'mode'        => 'execute',
+                'mode' => 'execute',
             ])
             ->assertOk()
             ->assertJsonPath('data.id', $sessionId);
@@ -107,64 +109,64 @@ class SessionLifecycleTest extends TestCase
         // Le message utilisateur doit être persisté avant d'appeler le driver
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'user',
-            'type'       => 'text',
-            'content'    => 'Ajoute un endpoint de recherche aux sessions',
+            'role' => 'user',
+            'type' => 'text',
+            'content' => 'Ajoute un endpoint de recherche aux sessions',
         ]);
 
         // Événements émis par MockAgentJob en mode execute (scénario success)
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'system',
-            'type'       => 'status',
+            'role' => 'system',
+            'type' => 'status',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'agent',
-            'type'       => 'plan',
+            'role' => 'agent',
+            'type' => 'plan',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'system',
-            'type'       => 'log',
+            'role' => 'system',
+            'type' => 'log',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'tool',
-            'type'       => 'terminal',
+            'role' => 'tool',
+            'type' => 'terminal',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'tool',
-            'type'       => 'tool_call',
+            'role' => 'tool',
+            'type' => 'tool_call',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'tool',
-            'type'       => 'file_change',
+            'role' => 'tool',
+            'type' => 'file_change',
         ]);
 
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'system',
-            'type'       => 'cost',
+            'role' => 'system',
+            'type' => 'cost',
         ]);
 
         // Le job s'arrête sur la confirmation_request (attend une action humaine)
         $this->assertDatabaseHas('messages', [
             'session_id' => $sessionId,
-            'role'       => 'system',
-            'type'       => 'confirmation_request',
+            'role' => 'system',
+            'type' => 'confirmation_request',
         ]);
 
         // La session doit être en attente de confirmation
         $this->assertDatabaseHas('agent_sessions', [
-            'id'     => $sessionId,
+            'id' => $sessionId,
             'status' => 'awaiting_confirmation',
         ]);
     }
@@ -179,7 +181,7 @@ class SessionLifecycleTest extends TestCase
             ->assertJsonPath('data.mode', 'execute');
 
         $this->assertDatabaseHas('agent_sessions', [
-            'id'   => $session->id,
+            'id' => $session->id,
             'mode' => 'execute',
         ]);
     }
@@ -194,7 +196,7 @@ class SessionLifecycleTest extends TestCase
             ->assertJsonPath('data.status', 'idle');
 
         $this->assertDatabaseHas('agent_sessions', [
-            'id'     => $session->id,
+            'id' => $session->id,
             'status' => 'idle',
         ]);
     }
@@ -206,12 +208,12 @@ class SessionLifecycleTest extends TestCase
         $this->actingAs($this->user)
             ->postJson("/api/sessions/{$session->id}/instruction", [
                 'instruction' => 'Explique le code',
-                'mode'        => 'plan',
+                'mode' => 'plan',
             ])
             ->assertOk();
 
         $this->assertDatabaseHas('agent_sessions', [
-            'id'   => $session->id,
+            'id' => $session->id,
             'mode' => 'plan',
         ]);
     }

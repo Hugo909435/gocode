@@ -21,15 +21,15 @@ class GitService
             if ($line === '') {
                 continue;
             }
-            $index    = $line[0];
+            $index = $line[0];
             $worktree = $line[1];
-            $path     = ltrim(substr($line, 3));
+            $path = ltrim(substr($line, 3));
 
             $files[] = [
-                'path'     => $path,
-                'index'    => $index,
+                'path' => $path,
+                'index' => $index,
                 'worktree' => $worktree,
-                'status'   => $this->resolveStatus($index, $worktree),
+                'status' => $this->resolveStatus($index, $worktree),
             ];
         }
 
@@ -86,8 +86,8 @@ class GitService
      */
     public function log(Project $project, int $limit = 20): array
     {
-        $format  = '%H%x1f%h%x1f%s%x1f%an%x1f%ae%x1f%aI';
-        $output  = $this->run($project, [
+        $format = '%H%x1f%h%x1f%s%x1f%an%x1f%ae%x1f%aI';
+        $output = $this->run($project, [
             'git', 'log',
             "--pretty=format:{$format}",
             '-n', (string) $limit,
@@ -100,12 +100,12 @@ class GitService
             }
             [$hash, $shortHash, $message, $author, $email, $date] = explode("\x1f", $line, 6);
             $commits[] = [
-                'hash'       => $hash,
+                'hash' => $hash,
                 'short_hash' => $shortHash,
-                'message'    => $message,
-                'author'     => $author,
-                'email'      => $email,
-                'date'       => $date,
+                'message' => $message,
+                'author' => $author,
+                'email' => $email,
+                'date' => $date,
             ];
         }
 
@@ -152,7 +152,7 @@ class GitService
 
         if (! $process->isSuccessful()) {
             throw new \RuntimeException(
-                sprintf("Git command [%s] failed: %s", implode(' ', $command), $process->getErrorOutput())
+                sprintf('Git command [%s] failed: %s', implode(' ', $command), $process->getErrorOutput())
             );
         }
 
@@ -225,9 +225,9 @@ class GitService
             $commitArgs,
             $project->path,
             [
-                'GIT_AUTHOR_NAME'     => 'gocode',
-                'GIT_AUTHOR_EMAIL'    => 'gocode@local',
-                'GIT_COMMITTER_NAME'  => 'gocode',
+                'GIT_AUTHOR_NAME' => 'gocode',
+                'GIT_AUTHOR_EMAIL' => 'gocode@local',
+                'GIT_COMMITTER_NAME' => 'gocode',
                 'GIT_COMMITTER_EMAIL' => 'gocode@local',
             ],
         );
@@ -262,9 +262,9 @@ class GitService
             ['git', 'commit', '-m', 'chore: sync changes'],
             $project->path,
             [
-                'GIT_AUTHOR_NAME'     => 'gocode',
-                'GIT_AUTHOR_EMAIL'    => 'gocode@local',
-                'GIT_COMMITTER_NAME'  => 'gocode',
+                'GIT_AUTHOR_NAME' => 'gocode',
+                'GIT_AUTHOR_EMAIL' => 'gocode@local',
+                'GIT_COMMITTER_NAME' => 'gocode',
                 'GIT_COMMITTER_EMAIL' => 'gocode@local',
             ],
         );
@@ -298,9 +298,9 @@ class GitService
             ['git', 'commit', '-m', $message],
             $project->path,
             [
-                'GIT_AUTHOR_NAME'     => 'gocode',
-                'GIT_AUTHOR_EMAIL'    => 'gocode@local',
-                'GIT_COMMITTER_NAME'  => 'gocode',
+                'GIT_AUTHOR_NAME' => 'gocode',
+                'GIT_AUTHOR_EMAIL' => 'gocode@local',
+                'GIT_COMMITTER_NAME' => 'gocode',
                 'GIT_COMMITTER_EMAIL' => 'gocode@local',
             ]
         );

@@ -7,11 +7,11 @@ use App\Http\Requests\Session\ConfirmActionRequest;
 use App\Http\Requests\Session\SendInstructionRequest;
 use App\Http\Requests\Session\StoreSessionRequest;
 use App\Http\Requests\Session\UpdateSessionRequest;
+use App\Http\Resources\MessageResource;
 use App\Http\Resources\SessionResource;
 use App\Models\Project;
 use App\Models\Session;
 use App\Services\SessionService;
-use App\Http\Resources\MessageResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -54,7 +54,6 @@ class SessionController extends Controller
             $session,
             $request->input('instruction'),
             $request->input('mode'),
-            $request->input('skills', []),
         );
 
         return response()->json(['data' => new SessionResource($session->fresh())]);
@@ -101,7 +100,7 @@ class SessionController extends Controller
      */
     public function poll(Request $request, Session $session): JsonResponse
     {
-        $cursor   = (int) $request->query('cursor', 0);
+        $cursor = (int) $request->query('cursor', 0);
         $messages = $session->messages()
             ->where('id', '>', $cursor)
             ->orderBy('id')
@@ -110,7 +109,7 @@ class SessionController extends Controller
         $session->load('project');
 
         return response()->json([
-            'session'  => new SessionResource($session),
+            'session' => new SessionResource($session),
             'messages' => MessageResource::collection($messages),
         ]);
     }

@@ -45,7 +45,7 @@ class MockAgentDriver implements AgentDriverContract
      * Avec QUEUE_CONNECTION=sync le job s'exécute immédiatement (bloquant).
      * Avec QUEUE_CONNECTION=database le job part en arrière-plan.
      */
-    public function sendInstruction(Session $session, string $instruction, string $mode, array $skills = []): void
+    public function sendInstruction(Session $session, string $instruction, string $mode): void
     {
         MockAgentJob::dispatch(
             sessionId: $session->id,
@@ -68,7 +68,7 @@ class MockAgentDriver implements AgentDriverContract
     public function confirmAction(Session $session, string $actionId, bool $approved): void
     {
         $cacheKey = "mock.pending.{$session->id}";
-        $pending  = Cache::get($cacheKey);
+        $pending = Cache::get($cacheKey);
 
         if (! $pending || $pending['action_id'] !== $actionId) {
             return;

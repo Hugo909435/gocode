@@ -19,9 +19,9 @@ class AgentDemoCommand extends Command
     public function handle(): int
     {
         $sessionId = $this->argument('session');
-        $scenario  = $this->option('scenario');
-        $mode      = $this->option('mode');
-        $delayMs   = $this->option('no-delay') ? 0 : 600;
+        $scenario = $this->option('scenario');
+        $mode = $this->option('mode');
+        $delayMs = $this->option('no-delay') ? 0 : 600;
 
         if (! in_array($scenario, ['success', 'error'], true)) {
             $this->error("Scénario invalide : « {$scenario} ». Valeurs acceptées : success, error.");
@@ -53,7 +53,7 @@ class AgentDemoCommand extends Command
         $this->info("Mode     : {$mode}");
         $this->info("Délai    : {$delayMs} ms entre événements");
         $this->newLine();
-        $this->info("Exécution synchrone (dispatchSync)…");
+        $this->info('Exécution synchrone (dispatchSync)…');
 
         // dispatchSync() contourne la queue et exécute le job directement dans ce process.
         // Cela bloque la CLI le temps du scénario, mais aucun queue worker n'est requis.
@@ -69,7 +69,7 @@ class AgentDemoCommand extends Command
 
         $this->newLine();
         $this->info('Scénario terminé.');
-        $this->line("Vérifiez les messages insérés :");
+        $this->line('Vérifiez les messages insérés :');
         $this->line("  SELECT id, role, type, LEFT(content, 80) FROM messages WHERE session_id = '{$sessionId}' ORDER BY id;");
 
         return Command::SUCCESS;

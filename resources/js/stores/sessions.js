@@ -33,11 +33,10 @@ export const useSessionsStore = defineStore('sessions', () => {
         return data.data;
     }
 
-    async function sendInstruction(id, instruction, mode, skills = []) {
+    async function sendInstruction(id, instruction, mode) {
         const { data } = await api.post(`/sessions/${id}/instruction`, {
             instruction,
             mode,
-            skills,
         });
         current.value = data.data;
         return data.data;

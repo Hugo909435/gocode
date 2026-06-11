@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\GitController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectGitHubController;
+use App\Http\Controllers\Api\PushSubscriptionController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SessionStreamController;
 use App\Http\Controllers\Api\SettingsController;
@@ -23,6 +24,11 @@ Route::post('/login', [LoginController::class, 'store']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy']);
     Route::get('/me', [LoginController::class, 'me']);
+
+    // Notifications Web Push
+    Route::get('/push/key', [PushSubscriptionController::class, 'key']);
+    Route::post('/push/subscribe', [PushSubscriptionController::class, 'store']);
+    Route::delete('/push/subscribe', [PushSubscriptionController::class, 'destroy']);
 
     // Paramètres
     Route::get('/settings/github', [SettingsController::class, 'githubShow']);
@@ -47,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/diff', [GitController::class, 'diff']);
         Route::get('/branch', [GitController::class, 'branch']);
         Route::get('/log', [GitController::class, 'log']);
+        Route::post('/pull', [GitController::class, 'pull']);
         Route::post('/push', [GitController::class, 'push']);
         Route::get('/push/{pushId}/status', [GitController::class, 'pushStatus']);
     });

@@ -14,16 +14,15 @@ interface AgentDriverContract
     /**
      * Envoie une instruction à l'agent dans le contexte d'une session.
      *
-     * @param  string  $mode    'read' | 'plan' | 'execute'
-     * @param  array   $skills  Slugs des skills actifs (ex. ['frontend-design', 'caveman'])
+     * @param  string  $mode  'read' | 'plan' | 'execute'
      */
-    public function sendInstruction(Session $session, string $instruction, string $mode, array $skills = []): void;
+    public function sendInstruction(Session $session, string $instruction, string $mode): void;
 
     /**
      * Répond à une demande de confirmation émise par l'agent.
      *
      * @param  string  $actionId  Identifiant de l'action (payload du confirmation_request)
-     * @param  bool    $approved  true = confirmer, false = annuler
+     * @param  bool  $approved  true = confirmer, false = annuler
      */
     public function confirmAction(Session $session, string $actionId, bool $approved): void;
 

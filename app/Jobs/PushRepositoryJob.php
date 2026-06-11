@@ -27,38 +27,44 @@ class PushRepositoryJob implements ShouldQueue
     public function handle(SettingsService $settings): void
     {
         $project = Project::findOrFail($this->projectId);
-        $log     = [];
+        $log = [];
 
         try {
-            $token  = $settings->getEncrypted('github.pat');
-            $path   = $project->path;
+            $token = $settings->getEncrypted('github.pat');
+            $path = $project->path;
             $remote = $project->git_remote;
             $branch = $project->default_branch ?: 'main';
 
-            if (! $token)  throw new \RuntimeException('PAT GitHub non configuré.');
-            if (! $path || ! is_dir($path)) throw new \RuntimeException("Chemin invalide : {$path}");
-            if (! $remote) throw new \RuntimeException('Remote GitHub non configuré.');
+            if (! $token) {
+                throw new \RuntimeException('PAT GitHub non configuré.');
+            }
+            if (! $path || ! is_dir($path)) {
+                throw new \RuntimeException("Chemin invalide : {$path}");
+            }
+            if (! $remote) {
+                throw new \RuntimeException('Remote GitHub non configuré.');
+            }
 
             $authenticatedUrl = preg_replace('#^(https://)#', "https://{$token}@", $remote);
 
             // 1. git add -A
             $out = $this->git(['git', 'add', '-A'], $path);
-            $log[] = "add: ok";
+            $log[] = 'add: ok';
 
             // 2. git status --short (pour voir ce qui va être commité)
             $status = $this->gitRaw(['git', 'status', '--short'], $path);
-            $log[] = "status: " . (trim($status) ?: '(rien)');
+            $log[] = 'status: '.(trim($status) ?: '(rien)');
 
             // 3. git commit (avec identité passée via -c pour éviter les pb d'env Windows)
             $commitProc = new Process(
                 ['git', '-c', 'user.name=gocode', '-c', 'user.email=gocode@local',
-                 'commit', '-m', $this->message ?: 'sync: push changes'],
+                    'commit', '-m', $this->message ?: 'sync: push changes'],
                 $path
             );
             $commitProc->setTimeout(30);
             $commitProc->run();
-            $log[] = "commit stdout: " . trim($commitProc->getOutput() ?: '(vide)');
-            $log[] = "commit stderr: " . trim($commitProc->getErrorOutput() ?: '(vide)');
+            $log[] = 'commit stdout: '.trim($commitProc->getOutput() ?: '(vide)');
+            $log[] = 'commit stderr: '.trim($commitProc->getErrorOutput() ?: '(vide)');
 
             // 4. Vérifier qu'il existe au moins un commit
             $hasCommit = new Process(['git', 'log', '-1', '--oneline'], $path);
@@ -68,30 +74,30 @@ class PushRepositoryJob implements ShouldQueue
                 // Repo vide — commit vide pour débloquer le push
                 $this->git(
                     ['git', '-c', 'user.name=gocode', '-c', 'user.email=gocode@local',
-                     'commit', '--allow-empty', '-m', 'Initial commit'],
+                        'commit', '--allow-empty', '-m', 'Initial commit'],
                     $path
                 );
-                $log[] = "initial empty commit créé";
+                $log[] = 'initial empty commit créé';
             } else {
-                $log[] = "dernier commit: " . trim($hasCommit->getOutput());
+                $log[] = 'dernier commit: '.trim($hasCommit->getOutput());
             }
 
             // 5. git push
             $pushOut = $this->git(['git', 'push', $authenticatedUrl, "HEAD:{$branch}"], $path, 120);
-            $log[] = "push: ok";
+            $log[] = 'push: ok';
 
             Cache::put("push.{$this->pushId}", [
                 'status' => 'done',
                 'branch' => $branch,
                 'remote' => $remote,
-                'log'    => implode("\n", $log),
+                'log' => implode("\n", $log),
             ], now()->addMinutes(5));
 
         } catch (\Exception $e) {
             Cache::put("push.{$this->pushId}", [
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => $e->getMessage(),
-                'log'     => implode("\n", $log),
+                'log' => implode("\n", $log),
             ], now()->addMinutes(5));
         }
     }
@@ -104,7 +110,7 @@ class PushRepositoryJob implements ShouldQueue
 
         if (! $process->isSuccessful()) {
             $error = trim($process->getErrorOutput() ?: $process->getOutput());
-            throw new \RuntimeException('[' . implode(' ', $command) . '] ' . $error);
+            throw new \RuntimeException('['.implode(' ', $command).'] '.$error);
         }
 
         return $process->getOutput();

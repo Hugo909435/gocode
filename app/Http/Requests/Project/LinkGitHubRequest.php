@@ -4,6 +4,7 @@ namespace App\Http\Requests\Project;
 
 use App\Services\GitHubService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class LinkGitHubRequest extends FormRequest
 {
@@ -19,7 +20,7 @@ class LinkGitHubRequest extends FormRequest
         ];
     }
 
-    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    public function withValidator(Validator $validator): void
     {
         $validator->after(function ($v) {
             $url = $this->input('repo_url');

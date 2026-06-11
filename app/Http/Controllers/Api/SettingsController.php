@@ -21,7 +21,7 @@ class SettingsController extends Controller
         $pat = $this->settings->getEncrypted('github.pat');
 
         return response()->json(['data' => [
-            'configured'  => $pat !== null,
+            'configured' => $pat !== null,
             'pat_preview' => $pat ? substr($pat, 0, 4).'****'.substr($pat, -4) : null,
         ]]);
     }
@@ -37,7 +37,7 @@ class SettingsController extends Controller
         $this->settings->setEncrypted('github.pat', $pat);
 
         return response()->json(['data' => [
-            'configured'  => true,
+            'configured' => true,
             'pat_preview' => substr($pat, 0, 4).'****'.substr($pat, -4),
         ]]);
     }

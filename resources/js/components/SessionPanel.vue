@@ -120,10 +120,7 @@
                         </button>
 
                         <!-- Push GitHub -->
-                        <div
-                            v-if="session?.project?.git_remote"
-                            class="flex items-center gap-1 ml-2"
-                        >
+                        <div v-if="session" class="flex items-center gap-1 ml-2">
                             <input
                                 v-model="pushMessage"
                                 type="text"
@@ -152,6 +149,38 @@
                             </button>
                         </div>
 
+                        <!-- Notifications push -->
+                        <button
+                            v-if="push.supported.value"
+                            :disabled="push.busy.value"
+                            class="w-7 h-7 flex items-center justify-center border transition-all rounded-[--radius-none]"
+                            :class="
+                                push.enabled.value
+                                    ? 'border-primary/60 text-primary bg-primary/10'
+                                    : 'border-primary/20 text-primary/30 hover:text-primary/60 hover:border-primary/40'
+                            "
+                            :title="
+                                push.enabled.value
+                                    ? 'Notifications activées'
+                                    : 'Activer les notifications (fin de tâche, erreurs)'
+                            "
+                            @click="push.toggle()"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3A6 6 0 006 11v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                                />
+                            </svg>
+                        </button>
+
                         <!-- Poll indicator -->
                         <div
                             class="w-1.5 h-1.5 ml-1 rounded-full"
@@ -166,6 +195,84 @@
                 </div>
             </div>
         </header>
+
+        <!-- ─── Création du repo GitHub avant premier push ─────────── -->
+        <Transition name="launch-fade">
+            <div
+                v-if="showRemoteForm"
+                class="shrink-0 px-4 py-3 bg-warning/5 border-b border-warning/30 flex flex-wrap items-center gap-3"
+            >
+                <span class="text-[10px] text-warning/80 font-mono theme-text">
+                    {{
+                        settings.theme === 'hacker'
+                            ? 'NO_UPLINK :: CREATE_REPO?'
+                            : 'Pas encore de repo GitHub — il sera créé puis poussé.'
+                    }}
+                </span>
+                <input
+                    v-model="newRepoName"
+                    type="text"
+                    placeholder="nom-du-repo"
+                    class="bg-bg-terminal border border-warning/30 px-2 py-1 text-[10px] font-mono text-warning placeholder:text-warning/20 focus:outline-none focus:border-warning/60 w-44 rounded-[--radius-none]"
+                />
+                <label
+                    class="flex items-center gap-1.5 text-[10px] text-warning/70 font-mono select-none cursor-pointer"
+                >
+                    <input v-model="newRepoPrivate" type="checkbox" class="accent-current" />
+                    {{ settings.theme === 'hacker' ? 'PRIVATE_NODE' : 'Privé' }}
+                </label>
+                <button
+                    :disabled="savingRemote || !newRepoName.trim()"
+                    class="px-3 py-1 text-[10px] font-bold text-warning border border-warning/60 hover:bg-warning hover:text-black transition-all disabled:opacity-30 theme-text rounded-[--radius-none]"
+                    @click="confirmCreateAndPush"
+                >
+                    {{
+                        savingRemote
+                            ? '...'
+                            : settings.theme === 'hacker'
+                              ? '[ CREATE+PUSH ]'
+                              : 'Créer + Push'
+                    }}
+                </button>
+                <button
+                    class="px-3 py-1 text-[10px] text-warning/50 border border-warning/20 hover:text-warning hover:border-warning/50 transition-all theme-text rounded-[--radius-none]"
+                    @click="closeRemoteForm"
+                >
+                    {{ settings.theme === 'hacker' ? '[ ABORT ]' : 'Annuler' }}
+                </button>
+                <span v-if="remoteError" class="text-[10px] text-danger font-mono w-full">{{
+                    remoteError
+                }}</span>
+            </div>
+        </Transition>
+
+        <!-- ─── Feedback push / sync ───────────────────────────────── -->
+        <Transition name="launch-fade">
+            <div
+                v-if="pushFeedback"
+                class="shrink-0 px-4 py-1.5 border-b flex items-center justify-between gap-3"
+                :class="
+                    pushFeedback.ok
+                        ? 'bg-primary/5 border-primary/20 text-primary/80'
+                        : 'bg-danger/5 border-danger/30 text-danger'
+                "
+            >
+                <span class="text-[10px] font-mono theme-text">{{ pushFeedback.message }}</span>
+                <button
+                    class="opacity-50 hover:opacity-100 transition-opacity"
+                    @click="pushFeedback = null"
+                >
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </Transition>
 
         <!-- ─── Barre de lancement ─────────────────────────────────── -->
         <Transition name="launch-fade">
@@ -503,14 +610,6 @@
                     <div
                         class="flex items-center gap-2 text-[9px] font-bold text-primary/40 theme-text mr-1"
                     >
-                        <template v-if="msg.meta?.skills?.length">
-                            <span
-                                v-for="sk in msg.meta.skills"
-                                :key="sk"
-                                class="px-1.5 py-0.5 border border-primary/30 text-primary/50 text-[8px] tracking-tighter rounded-[--radius-none]"
-                                >/{{ sk }}</span
-                            >
-                        </template>
                         {{ settings.theme === 'hacker' ? 'USER_DIRECTIVE' : 'You' }}
                     </div>
                     <div
@@ -661,24 +760,6 @@
                     </div>
                 </div>
 
-                <!-- Skills -->
-                <div class="flex items-center gap-2 px-1 flex-wrap">
-                    <span class="text-[9px] text-primary/20 theme-text shrink-0">SKILLS:</span>
-                    <button
-                        v-for="sk in skills"
-                        :key="sk.value"
-                        class="text-[9px] px-2 py-0.5 border font-bold theme-text transition-all rounded-[--radius-none]"
-                        :class="
-                            selectedSkills.has(sk.value)
-                                ? 'border-primary text-primary bg-primary/10 glow'
-                                : 'border-primary/20 text-primary/30 hover:border-primary/50 hover:text-primary/60'
-                        "
-                        @click="toggleSkill(sk.value)"
-                    >
-                        {{ sk.label }}
-                    </button>
-                </div>
-
                 <div class="flex justify-between items-center px-1">
                     <div class="flex gap-4">
                         <button
@@ -711,6 +792,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useSessionsStore } from '@/stores/sessions.js';
 import { useSettingsStore } from '@/stores/settings.js';
+import { usePush } from '@/composables/usePush.js';
 import api from '@/api/client.js';
 
 // Directive auto-resize pour le textarea
@@ -773,6 +855,7 @@ const selectedMode = ref('execute');
 const confirmedActions = ref(new Map());
 const userScrolled = ref(false);
 const pollConnected = ref(false);
+const push = usePush();
 
 // Refs DOM
 const feedEl = ref(null);
@@ -798,15 +881,6 @@ const modes = [
     { value: 'plan', label: 'PLAN', desc: 'STRATEGY' },
     { value: 'execute', label: 'EXEC', desc: 'OVERWRITE' },
 ];
-
-const skills = [
-    { value: 'seo-audit', label: 'SEO' },
-    { value: 'caveman', label: 'CAVEMAN' },
-    { value: 'frontend-design', label: 'FRONTEND' },
-    { value: 'humanizer-zh', label: 'HUMANIZER' },
-];
-
-const selectedSkills = ref(new Set());
 
 const activeStatuses = new Set(['reading', 'planning', 'building', 'running']);
 
@@ -840,13 +914,25 @@ const repoName = computed(() => {
 onMounted(async () => {
     await loadSession();
     startPolling(true);
+    push.init();
+    doSyncPull();
+    // Au retour sur l'app (déverrouillage du téléphone, changement d'onglet),
+    // relance un poll immédiat au lieu d'attendre le prochain tick planifié.
+    document.addEventListener('visibilitychange', onVisibilityChange);
 });
 
 onUnmounted(() => {
     stopPolling();
     clearTimeout(launchProgressTimer);
     clearTimeout(launchPollTimer);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
 });
+
+function onVisibilityChange() {
+    if (document.visibilityState === 'visible') {
+        startPolling();
+    }
+}
 
 // ─── Chargement initial ───────────────────────────────────────────
 
@@ -910,11 +996,12 @@ async function doPoll() {
             }
         }
 
-        const terminalDone =
-            ['done', 'error', 'idle'].includes(data.session?.status) && newMessages.length === 0;
+        const status = data.session?.status;
+        const isTrulyDone = ['done', 'error'].includes(status) && newMessages.length === 0;
+        const isIdleNeverUsed = status === 'idle' && pollCursor === 0;
 
-        if (!terminalDone || pollCursor === 0) {
-            schedulePoll(terminalDone ? 3000 : 800);
+        if (!isTrulyDone && !isIdleNeverUsed) {
+            schedulePoll(status === 'idle' ? 3000 : 800);
         }
     } catch {
         pollConnected.value = false;
@@ -923,16 +1010,6 @@ async function doPoll() {
 }
 
 // ─── Actions ──────────────────────────────────────────────────────
-
-function toggleSkill(value) {
-    const next = new Set(selectedSkills.value);
-    if (next.has(value)) {
-        next.delete(value);
-    } else {
-        next.add(value);
-    }
-    selectedSkills.value = next;
-}
 
 async function submitInstruction() {
     const text = instruction.value.trim();
@@ -953,9 +1030,7 @@ async function submitInstruction() {
     scrollToBottom();
 
     try {
-        const updated = await store.sendInstruction(sessionId.value, text, selectedMode.value, [
-            ...selectedSkills.value,
-        ]);
+        const updated = await store.sendInstruction(sessionId.value, text, selectedMode.value);
         session.value = updated;
         startPolling();
     } catch (e) {
@@ -1078,26 +1153,84 @@ async function createGitHubRepo() {
     }
 }
 
-// ─── Push GitHub ──────────────────────────────────────────────────
+// ─── Pull / Push GitHub ───────────────────────────────────────────
+
+// Pull à l'ouverture de session : récupère les changements GitHub vers le
+// dossier local AVANT que Claude ne travaille (le local gagne en cas de conflit).
+async function doSyncPull() {
+    if (!session.value?.project?.git_remote) return;
+    try {
+        const { data } = await api.post(`/projects/${session.value.project_id}/git/pull`);
+        const d = data.data;
+        const fetched = (d.updated?.length || 0) + (d.deleted?.length || 0);
+        const kept = d.conflicts?.length || 0;
+        if (fetched > 0 || kept > 0) {
+            const parts = [];
+            if (fetched > 0) parts.push(`${fetched} fichier(s) récupéré(s) depuis GitHub`);
+            if (kept > 0) parts.push(`${kept} fichier(s) gardé(s) en version locale`);
+            pushFeedback.value = { ok: true, message: `↓ Sync : ${parts.join(', ')}` };
+        }
+    } catch {
+        // Silencieux : pas de remote joignable ≠ erreur bloquante pour la session
+    }
+}
 
 async function doPush() {
     if (pushing.value || !session.value) return;
+
+    // Pas encore de repo GitHub → proposer la création avant de pousser
+    if (!session.value.project?.git_remote) {
+        if (!newRepoName.value.trim()) {
+            newRepoName.value = sanitizeRepoName(session.value.project?.name || 'gocode-project');
+        }
+        remoteError.value = '';
+        showRemoteForm.value = true;
+        return;
+    }
+
+    await performPush();
+}
+
+async function confirmCreateAndPush() {
+    if (savingRemote.value) return;
+    await createGitHubRepo();
+    // createGitHubRepo a mis à jour session.project.git_remote en cas de succès
+    if (session.value?.project?.git_remote) {
+        await performPush();
+    }
+}
+
+async function performPush() {
     pushing.value = true;
     pushFeedback.value = null;
     try {
         const { data } = await api.post(`/projects/${session.value.project_id}/git/push`, {
-            message: pushMessage.value,
+            message: pushMessage.value || null,
         });
-        pushFeedback.value = {
-            ok: true,
-            message: `✓ UPLINK_SYNC: ${data.data.remote} (${data.data.branch})`,
-        };
+        const d = data.data;
+        const pullInfo = d.pull || {};
+        const kept = pullInfo.conflicts?.length || 0;
+        let message =
+            d.status === 'up_to_date'
+                ? `✓ Déjà à jour (${d.branch})`
+                : `✓ Push : ${d.pushed} fichier(s)${d.deleted ? `, ${d.deleted} supprimé(s)` : ''} → ${d.branch}`;
+        if (kept > 0) message += ` — ${kept} conflit(s) résolu(s) en faveur du local`;
+        pushFeedback.value = { ok: true, message };
         pushMessage.value = '';
     } catch (e) {
         pushFeedback.value = { ok: false, message: e.response?.data?.message ?? 'ERR_UPLINK_SYNC' };
     } finally {
         pushing.value = false;
     }
+}
+
+function sanitizeRepoName(name) {
+    return (
+        name
+            .toLowerCase()
+            .replace(/[^a-z0-9._-]+/g, '-')
+            .replace(/^-+|-+$/g, '') || 'gocode-project'
+    );
 }
 
 // ─── Lancement projet ─────────────────────────────────────────────

@@ -19,12 +19,12 @@ class AgentEventDispatcher
     {
         Message::create([
             'session_id' => $event->sessionId,
-            'role'       => $this->resolveRole($event->type),
-            'type'       => $this->resolveMessageType($event->type),
-            'content'    => json_encode($event->payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-            'meta'       => [
+            'role' => $this->resolveRole($event->type),
+            'type' => $this->resolveMessageType($event->type),
+            'content' => json_encode($event->payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            'meta' => [
                 'event_type' => $event->type->value,
-                'timestamp'  => $event->timestamp->format(DateTimeInterface::ATOM),
+                'timestamp' => $event->timestamp->format(DateTimeInterface::ATOM),
             ],
         ]);
 
@@ -34,11 +34,11 @@ class AgentEventDispatcher
     private function resolveRole(AgentEventType $type): string
     {
         return match ($type) {
-            AgentEventType::Message, AgentEventType::Plan                  => 'agent',
+            AgentEventType::Message, AgentEventType::Plan => 'agent',
             AgentEventType::ToolCall,
             AgentEventType::Terminal,
-            AgentEventType::FileChange                                     => 'tool',
-            default                                                        => 'system',
+            AgentEventType::FileChange => 'tool',
+            default => 'system',
         };
     }
 
@@ -50,8 +50,8 @@ class AgentEventDispatcher
     {
         return match ($type) {
             AgentEventType::Message => 'text',
-            AgentEventType::Done    => 'status',
-            default                 => $type->value,
+            AgentEventType::Done => 'status',
+            default => $type->value,
         };
     }
 }

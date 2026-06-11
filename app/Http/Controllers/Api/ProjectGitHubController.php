@@ -10,7 +10,6 @@ use App\Models\Project;
 use App\Services\GitHubService;
 use App\Services\SettingsService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
 
 class ProjectGitHubController extends Controller
 {
@@ -32,9 +31,9 @@ class ProjectGitHubController extends Controller
         $repoUrl = $request->input('repo_url');
 
         $project->update([
-            'git_remote'   => $repoUrl,
+            'git_remote' => $repoUrl,
             'clone_status' => 'pending',
-            'clone_error'  => null,
+            'clone_error' => null,
         ]);
 
         CloneRepositoryJob::dispatch($project->id, $repoUrl);
@@ -50,8 +49,8 @@ class ProjectGitHubController extends Controller
             return response()->json(['message' => 'PAT GitHub non configuré. Rendez-vous dans Paramètres.'], 422);
         }
 
-        $name        = request()->input('name', $project->name);
-        $private     = (bool) request()->input('private', true);
+        $name = request()->input('name', $project->name);
+        $private = (bool) request()->input('private', true);
         $description = request()->input('description', $project->description);
 
         try {
@@ -78,11 +77,11 @@ class ProjectGitHubController extends Controller
         }
 
         $project->update([
-            'git_remote'   => null,
+            'git_remote' => null,
             'clone_status' => null,
-            'clone_error'  => null,
+            'clone_error' => null,
             // On réinitialise le path uniquement s'il pointait vers notre clone géré
-            'path'         => str_starts_with($project->path ?? '', storage_path('app/repos'))
+            'path' => str_starts_with($project->path ?? '', storage_path('app/repos'))
                 ? null
                 : $project->path,
         ]);
@@ -93,9 +92,9 @@ class ProjectGitHubController extends Controller
     private function deleteDirectory(string $path): void
     {
         if (PHP_OS_FAMILY === 'Windows') {
-            exec('rmdir /S /Q ' . escapeshellarg($path));
+            exec('rmdir /S /Q '.escapeshellarg($path));
         } else {
-            exec('rm -rf ' . escapeshellarg($path));
+            exec('rm -rf '.escapeshellarg($path));
         }
     }
 }

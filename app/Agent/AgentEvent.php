@@ -16,16 +16,16 @@ final readonly class AgentEvent
 
     public static function make(AgentEventType $type, string $sessionId, array $payload = []): self
     {
-        return new self($type, $sessionId, new DateTimeImmutable(), $payload);
+        return new self($type, $sessionId, new DateTimeImmutable, $payload);
     }
 
     public function toArray(): array
     {
         return [
-            'type'       => $this->type->value,
+            'type' => $this->type->value,
             'session_id' => $this->sessionId,
-            'timestamp'  => $this->timestamp->format(DateTimeInterface::ATOM),
-            'payload'    => $this->payload,
+            'timestamp' => $this->timestamp->format(DateTimeInterface::ATOM),
+            'payload' => $this->payload,
         ];
     }
 }

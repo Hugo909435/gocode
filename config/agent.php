@@ -56,6 +56,23 @@ return [
              | Timeout du processus en secondes avant kill forcé.
              */
             'timeout' => (int) env('CLAUDE_TIMEOUT', 300),
+
+            /*
+             | Nombre maximum de tours agentiques par instruction (--max-turns).
+             | Plafond de sécurité contre les boucles d'exploration qui s'emballent
+             | (et donc contre la consommation de tokens incontrôlée).
+             | null = pas de limite. Une valeur trop basse peut tronquer une tâche
+             | execute légitime ; 25-50 est un bon point de départ.
+             */
+            'max_turns' => env('CLAUDE_MAX_TURNS') ? (int) env('CLAUDE_MAX_TURNS') : null,
+
+            /*
+             | Mode execute durci : remplace --dangerously-skip-permissions par une
+             | liste --allowedTools construite depuis la table command_whitelist
+             | (règles par projet + règles globales). Les commandes Bash hors
+             | whitelist échouent au lieu de s'exécuter. false = comportement V1.
+             */
+            'enforce_whitelist' => (bool) env('CLAUDE_ENFORCE_WHITELIST', false),
         ],
 
     ],
