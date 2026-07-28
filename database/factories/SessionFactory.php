@@ -21,6 +21,7 @@ class SessionFactory extends Factory
             'project_id' => Project::factory(),
             'title' => fake()->sentence(fake()->numberBetween(3, 7)),
             'mode' => fake()->randomElement(['read', 'plan', 'execute']),
+            'model' => fake()->randomElement(['kimi', 'deepseek']),
             'status' => $status,
             'initial_instruction' => fake()->paragraph(),
             'input_tokens' => fake()->numberBetween(0, 50_000),

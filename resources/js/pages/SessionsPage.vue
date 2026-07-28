@@ -113,6 +113,13 @@
                             >
                                 {{ settings.theme === 'hacker' ? 'MODE::' : '' }}{{ session.mode }}
                             </span>
+                            <!-- Model badge -->
+                            <span
+                                v-if="session.model"
+                                class="text-[9px] px-2 py-0.5 border border-primary/20 text-primary/50 font-bold theme-text rounded-[--radius-none]"
+                            >
+                                {{ modelLabel(session.model) }}
+                            </span>
                             <!-- Status badge -->
                             <span
                                 class="text-[9px] px-2 py-0.5 border font-bold theme-text rounded-[--radius-none]"
@@ -262,6 +269,32 @@
                             </div>
                         </div>
 
+                        <!-- Modèle -->
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-primary/60 theme-text">{{
+                                settings.theme === 'hacker' ? 'Model_Core' : 'Model'
+                            }}</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button
+                                    v-for="m in models"
+                                    :key="m.value"
+                                    type="button"
+                                    class="flex flex-col items-center gap-1 px-2 py-3 border text-[10px] theme-text font-bold transition-all rounded-[--radius-none]"
+                                    :class="
+                                        form.model === m.value
+                                            ? 'border-primary bg-primary/20 text-primary glow'
+                                            : 'border-primary/20 text-primary/40 hover:border-primary/40 hover:text-primary/60'
+                                    "
+                                    @click="form.model = m.value"
+                                >
+                                    <span>{{ m.label }}</span>
+                                    <span class="text-[8px] opacity-50 theme-text">{{
+                                        m.desc
+                                    }}</span>
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Instruction initiale -->
                         <div class="space-y-1">
                             <label class="block text-[10px] font-bold text-primary/60 theme-text">{{
@@ -352,7 +385,7 @@ const repoName = computed(() => {
 const showCreate = ref(false);
 const creating = ref(false);
 const createError = ref('');
-const form = ref({ title: '', mode: 'execute', initial_instruction: '' });
+const form = ref({ title: '', mode: 'execute', model: 'kimi', initial_instruction: '' });
 const setup = ref({ baseDir: '', repoName: '', git_init: false });
 const setupFullPath = computed(() => {
     const base = setup.value.baseDir.replace(/\/+$/, '');
@@ -366,6 +399,15 @@ const modes = [
     { value: 'plan', label: 'PLAN', desc: 'STRATEGY' },
     { value: 'execute', label: 'EXEC', desc: 'OVERWRITE' },
 ];
+
+const models = [
+    { value: 'kimi', label: 'KIMI K2.6', desc: 'MOONSHOT' },
+    { value: 'deepseek', label: 'DEEPSEEK', desc: 'V4_FLASH' },
+];
+
+function modelLabel(value) {
+    return models.find((m) => m.value === value)?.label ?? value;
+}
 
 onMounted(async () => {
     if (!projectsStore.projects.length) {
@@ -388,10 +430,11 @@ async function submitCreate() {
         const session = await store.createSession(projectId.value, {
             title: form.value.title || null,
             mode: form.value.mode,
+            model: form.value.model,
             initial_instruction: form.value.initial_instruction || null,
         });
         showCreate.value = false;
-        form.value = { title: '', mode: 'execute', initial_instruction: '' };
+        form.value = { title: '', mode: 'execute', model: 'kimi', initial_instruction: '' };
         setup.value = { baseDir: '', repoName: '', git_init: false };
         router.push({ name: 'session', params: { id: session.id } });
     } catch (e) {

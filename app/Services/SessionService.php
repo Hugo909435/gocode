@@ -25,6 +25,7 @@ class SessionService
         $session = $project->sessions()->create([
             'title' => $data['title'] ?? null,
             'mode' => $data['mode'] ?? 'read',
+            'model' => $data['model'] ?? config('agent.drivers.nvidia.default_model', 'kimi'),
             'initial_instruction' => $data['initial_instruction'] ?? null,
             'status' => 'idle',
         ]);
@@ -44,8 +45,8 @@ class SessionService
     public function sendInstruction(Session $session, string $instruction, ?string $mode): Message
     {
         // Anti-chevauchement : un seul run agent à la fois par session (un
-        // double-tap mobile lancerait deux processus Claude Code concurrents).
-        // Complété par WithoutOverlapping sur ClaudeCodeJob pour la fenêtre
+        // double-tap mobile lancerait deux jobs agent concurrents).
+        // Complété par WithoutOverlapping sur les jobs Nvidia pour la fenêtre
         // entre le dispatch et le passage du statut à « reading ».
         if (in_array($session->status, self::ACTIVE_STATUSES, true)) {
             throw ValidationException::withMessages([

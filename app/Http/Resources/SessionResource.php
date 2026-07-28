@@ -14,6 +14,7 @@ class SessionResource extends JsonResource
             'project_id' => $this->project_id,
             'title' => $this->title,
             'mode' => $this->mode,
+            'model' => $this->model,
             'status' => $this->status,
             'initial_instruction' => $this->initial_instruction,
             'input_tokens' => $this->input_tokens,

@@ -16,6 +16,7 @@ class UpdateSessionRequest extends FormRequest
     {
         return [
             'mode' => ['sometimes', 'string', Rule::in(['read', 'plan', 'execute'])],
+            'model' => ['sometimes', 'string', Rule::in(['kimi', 'deepseek'])],
             'status' => ['sometimes', 'string', Rule::in([
                 'idle', 'reading', 'planning', 'awaiting_confirmation',
                 'building', 'running', 'done', 'error',

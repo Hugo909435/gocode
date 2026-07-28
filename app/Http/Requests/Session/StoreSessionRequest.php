@@ -17,6 +17,7 @@ class StoreSessionRequest extends FormRequest
         return [
             'title' => ['nullable', 'string', 'max:255'],
             'mode' => ['nullable', 'string', Rule::in(['read', 'plan', 'execute'])],
+            'model' => ['nullable', 'string', Rule::in(['kimi', 'deepseek'])],
             'initial_instruction' => ['nullable', 'string'],
         ];
     }

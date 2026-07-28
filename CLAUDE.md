@@ -36,7 +36,8 @@ Interface web mono-utilisateur, auto-hébergée, pour piloter un agent de code I
 ┌──────────────▼──────────────────────┐
 │  Moteur agent externe               │
 │  → MockDriver (développement)       │
-│  → OpenCodeDriver (production)      │
+│  → NvidiaAgentDriver (production)   │
+│    Kimi K2.6 / DeepSeek             │
 └─────────────────────────────────────┘
 ```
 
@@ -128,7 +129,28 @@ app(AgentManager::class)->driver('mock')->startSession($session);
 | Slug | Classe | Environnement |
 |---|---|---|
 | `mock` | `App\Services\Agent\MockDriver` | Développement |
-| _(à venir)_ | `OpenCodeDriver` | Production |
+| `nvidia` | `App\Agent\Drivers\NvidiaAgentDriver` | Production — Kimi K2.6 + DeepSeek via l'API NVIDIA integrate.api.nvidia.com |
+
+`nvidia` n'exécute pas de CLI externe (contrairement à l'ancien `claude-code`, retiré) : il appelle
+`chat/completions` (compatible OpenAI, function-calling) et réimplémente lui-même les outils
+fichiers/bash via `App\Services\Agent\ToolExecutor`. Deux modèles configurés séparément dans
+`config('agent.drivers.nvidia.models')` (`kimi`, `deepseek`), chacun avec sa propre clé API.
+
+- **Mode `read`/`plan`** → `App\Jobs\NvidiaCollabJob` : les deux modèles explorent le code en lecture
+  seule en parallèle (séquentiellement en pratique — pas de vraie concurrence réseau), puis un appel
+  de synthèse fusionne leurs réponses en un seul message/plan.
+- **Mode `execute`** → `App\Jobs\NvidiaAgentJob` : un seul modèle actif (`agent_sessions.model`,
+  `kimi` par défaut) boucle function-calling avec accès en écriture (`write_file`, `edit_file`,
+  `bash_command`). Pas d'exécution concurrente de deux agents sur le même code.
+- **Confirmation `git commit`/`git push`** : contrairement à l'ancien driver Claude Code (qui ne
+  pausait pas réellement le processus en V1), `NvidiaAgentJob` intercepte ces commandes avant
+  exécution, dispatch un `confirmation_request`, sauvegarde l'état complet de la conversation en
+  cache (`nvidia.pending.{sessionId}`, TTL 1h) et arrête le job. `NvidiaAgentDriver::confirmAction`
+  reprend (`resumed: true`) ou annule selon la réponse de l'utilisateur.
+- **Historique inter-instructions** : pas de session serveur à reprendre (pas d'équivalent
+  `--resume`) — l'historique est reconstruit depuis la table `messages` à chaque nouvelle
+  instruction (texte utilisateur + réponses finales de l'agent uniquement ; les allers-retours
+  d'outils d'une instruction passée ne sont pas rejoués, pour ne pas faire exploser le contexte).
 
 ## Modèle de données
 
@@ -164,9 +186,9 @@ app(AgentManager::class)->driver('mock')->startSession($session);
 | `project_id` | FK → projects | cascade delete |
 | `title` | string nullable | |
 | `mode` | enum | `read` / `plan` / `execute` — défaut `read` |
+| `model` | string nullable | Modèle NVIDIA actif pour le mode execute : `kimi` ou `deepseek` |
 | `status` | enum | `idle` / `reading` / `planning` / `awaiting_confirmation` / `building` / `running` / `done` / `error` — défaut `idle` |
 | `initial_instruction` | text nullable | Instruction d'ouverture de session |
-| `claude_session_id` | string nullable | ID de session Claude Code CLI — reprise via `--resume` |
 | `input_tokens` | uint | Tokens consommés en entrée |
 | `output_tokens` | uint | Tokens générés |
 | `cost_usd` | decimal(10,6) | Coût estimé |
@@ -325,3 +347,4 @@ Le seeder utilise `firstOrCreate` : re-jouer le seed ne duplique pas le compte.
 | 2026-06-11 | UX mobile : PWA (manifest.webmanifest + icônes générées dans `public/icons/` + service worker `public/sw.js` enregistré depuis `app.js` — pas de cache offline volontairement) et notifications Web Push via `minishlink/web-push`. Backend : table `push_subscriptions`, `WebPushService` (broadcast à tous les endpoints, purge des abonnements expirés), listener `SendPushNotification` auto-découvert sur `AgentEventDispatched` (types `done`/`error`/`confirmation_request`), endpoints `GET /api/push/key`, `POST/DELETE /api/push/subscribe`, commande `php artisan webpush:vapid` (clés dans .env : `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`/`VAPID_SUBJECT` ; sur Windows, `OPENSSL_CONF` requis pour la crypto EC). Frontend : composable `usePush.js`, bouton cloche dans le header de `SessionPanel`, poll immédiat au `visibilitychange` (retour d'écran verrouillé). Sur iOS le push exige l'installation en PWA. |
 | 2026-06-11 | Fiabilité et perfs : `ClaudeCodeJob.failed()` + `markSessionFailed()` (plus de session zombie figée en `reading`/`running` si le job crashe), appel explicite de `Process::checkTimeout()` dans la boucle d'attente (sans lui, `CLAUDE_TIMEOUT` n'avait aucun effet avec `start()`), timeout du job aligné dynamiquement (process + 60 s), middleware `WithoutOverlapping(sessionId)` + garde 422 dans `SessionService::sendInstruction` (statuts actifs) contre les instructions concurrentes. Index composé `messages(session_id, id)` pour le polling. Commande `sessions:prune --days=N` planifiée daily (sessions terminales dont `ended_at` > 30 j). `CLAUDE_ENFORCE_WHITELIST` (opt-in, défaut false) : en mode execute, remplace `--dangerously-skip-permissions` par `--allowedTools` construit depuis `command_whitelist` (pattern `cmd *` → `Bash(cmd:*)`). `queue:listen --sleep=1` dans le script composer dev. |
 | 2026-06-11 | Optimisation tokens du `ClaudeCodeDriver` : reprise de session CLI via `--resume` — colonne `agent_sessions.claude_session_id`, capturée depuis l'événement `system/init` du stream-json et mise à jour à chaque run (le CLI fork un nouvel ID à chaque reprise). Avant : chaque instruction relançait `claude --print` à froid et re-explorait tout le projet. L'ID est purgé si un run échoue (exit code ≠ 0) afin que l'instruction suivante reparte sur une session CLI fraîche. Ajout de `CLAUDE_MAX_TURNS` (`--max-turns`, plafond anti-emballement, null par défaut). L'événement `cost` expose `cache_read_input_tokens` / `cache_creation_input_tokens` pour mesurer l'efficacité du prompt cache ; lecture de `total_cost_usd` (CLI récents) avec repli sur `cost_usd`. |
+| 2026-07-28 | **Retrait de Claude Code, remplacement par l'API NVIDIA (Kimi K2.6 + DeepSeek)** — `ClaudeCodeDriver`/`ClaudeCodeJob` supprimés. Nouveau driver `nvidia` : `NvidiaClient` (client HTTP `chat/completions`, compatible OpenAI function-calling, `app/Services/Agent/NvidiaClient.php`) + `ToolExecutor` (`app/Services/Agent/ToolExecutor.php`) qui réimplémente en PHP les outils que le CLI Claude Code fournissait nativement — `read_file`/`list_dir`/`glob_search`/`grep_search` (tous modes) et `write_file`/`edit_file`/`bash_command` (mode execute uniquement), sandboxés au dossier du projet (rejet des chemins hors racine et des `..`), whitelist `command_whitelist` appliquée sur `bash_command` si `NVIDIA_ENFORCE_WHITELIST=true`. Deux jobs : `NvidiaAgentJob` (mode execute, un seul modèle, boucle function-calling avec confirmation bloquante avant tout `git commit`/`git push` — état de conversation sauvegardé en cache `nvidia.pending.{sessionId}` puis repris via `confirmAction`) et `NvidiaCollabJob` (mode read/plan, Kimi et DeepSeek explorent chacun le code en lecture seule puis un appel de synthèse fusionne leurs réponses). Colonne `agent_sessions.claude_session_id` remplacée par `agent_sessions.model` (`kimi` \| `deepseek`, sélectionné à la création ou en cours de session, utilisé en mode execute). Config : `config('agent.drivers.nvidia')` (`base_url`, `models.kimi`/`models.deepseek` avec clé API + nom de modèle par sous-driver, `default_model`, `timeout`, `max_turns`, `enforce_whitelist`) ; env `NVIDIA_BASE_URL`, `NVIDIA_KIMI_API_KEY`/`NVIDIA_KIMI_MODEL`, `NVIDIA_DEEPSEEK_API_KEY`/`NVIDIA_DEEPSEEK_MODEL`, `NVIDIA_TIMEOUT`, `NVIDIA_MAX_TURNS`, `NVIDIA_ENFORCE_WHITELIST`. Pas d'équivalent `--resume` : l'historique inter-instructions est reconstruit depuis `messages` (texte utilisateur + réponses finales agent seulement, pas les tool_calls intermédiaires). Frontend : sélecteur de modèle dans `SessionsPage.vue` (création) et `SessionPanel.vue` (persisté via `PATCH /api/sessions/{session}`, visible uniquement en mode execute). |

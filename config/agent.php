@@ -7,8 +7,7 @@ return [
     | Driver agent par défaut
     |--------------------------------------------------------------------------
     |
-    | Valeurs disponibles : "mock"
-    | Ajouter "opencode" quand le vrai pilote sera implémenté.
+    | Valeurs disponibles : "mock", "nvidia".
     |
     */
     'default' => env('AGENT_DRIVER', 'mock'),
@@ -31,48 +30,51 @@ return [
             'delay_ms' => (int) env('MOCK_DELAY_MS', 1000),
         ],
 
-        'claude-code' => [
+        'nvidia' => [
             /*
-             | Chemin vers le binaire Claude Code.
-             | Sur Windows, les binaires npm globaux sont des fichiers .cmd :
-             |   CLAUDE_BINARY=claude.cmd  ou chemin complet absolu
-             | Sur Linux/macOS, 'claude' suffit si le binaire est dans le PATH.
+             | Base URL de l'API NVIDIA (compatible OpenAI chat/completions).
              */
-            'binary' => env('CLAUDE_BINARY', 'claude'),
+            'base_url' => env('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1'),
 
             /*
-             | Modèle Claude à utiliser (null = laisser Claude Code choisir son défaut).
-             | Exemples : claude-opus-4-5, claude-sonnet-4-6, claude-haiku-4-5
+             | Modèles disponibles, sélectionnables par session (agent_sessions.model).
+             | Chaque modèle a sa propre clé API NVIDIA.
              */
-            'model' => env('CLAUDE_MODEL', null),
+            'models' => [
+                'kimi' => [
+                    'model' => env('NVIDIA_KIMI_MODEL', 'moonshotai/kimi-k2.6'),
+                    'api_key' => env('NVIDIA_KIMI_API_KEY'),
+                ],
+                'deepseek' => [
+                    'model' => env('NVIDIA_DEEPSEEK_MODEL', 'deepseek-ai/deepseek-v4-flash'),
+                    'api_key' => env('NVIDIA_DEEPSEEK_API_KEY'),
+                ],
+            ],
 
             /*
-             | Clé API Anthropic transmise en variable d'environnement au sous-processus.
-             | Laisser vide si Claude Code utilise déjà sa propre clé stockée (~/.claude).
+             | Modèle utilisé par défaut pour une session qui n'en a pas choisi
+             | explicitement (mode execute) et pour la collaboration read/plan.
              */
-            'api_key' => env('ANTHROPIC_API_KEY', null),
+            'default_model' => env('NVIDIA_DEFAULT_MODEL', 'kimi'),
 
             /*
-             | Timeout du processus en secondes avant kill forcé.
+             | Timeout d'un appel HTTP chat/completions, en secondes.
              */
-            'timeout' => (int) env('CLAUDE_TIMEOUT', 300),
+            'timeout' => (int) env('NVIDIA_TIMEOUT', 300),
 
             /*
-             | Nombre maximum de tours agentiques par instruction (--max-turns).
-             | Plafond de sécurité contre les boucles d'exploration qui s'emballent
-             | (et donc contre la consommation de tokens incontrôlée).
-             | null = pas de limite. Une valeur trop basse peut tronquer une tâche
-             | execute légitime ; 25-50 est un bon point de départ.
+             | Nombre maximum de tours agentiques (appels modèle + exécution
+             | d'outils) par instruction. Plafond de sécurité contre les
+             | boucles qui s'emballent. null = pas de limite.
              */
-            'max_turns' => env('CLAUDE_MAX_TURNS') ? (int) env('CLAUDE_MAX_TURNS') : null,
+            'max_turns' => env('NVIDIA_MAX_TURNS') ? (int) env('NVIDIA_MAX_TURNS') : 25,
 
             /*
-             | Mode execute durci : remplace --dangerously-skip-permissions par une
-             | liste --allowedTools construite depuis la table command_whitelist
-             | (règles par projet + règles globales). Les commandes Bash hors
-             | whitelist échouent au lieu de s'exécuter. false = comportement V1.
+             | Mode execute durci : seules les commandes bash de la table
+             | command_whitelist (règles par projet + règles globales) sont
+             | autorisées. false = toute commande bash est exécutable (V1).
              */
-            'enforce_whitelist' => (bool) env('CLAUDE_ENFORCE_WHITELIST', false),
+            'enforce_whitelist' => (bool) env('NVIDIA_ENFORCE_WHITELIST', false),
         ],
 
     ],

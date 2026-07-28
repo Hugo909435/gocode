@@ -2,8 +2,8 @@
 
 namespace App\Agent;
 
-use App\Agent\Drivers\ClaudeCodeDriver;
 use App\Agent\Drivers\MockAgentDriver;
+use App\Agent\Drivers\NvidiaAgentDriver;
 use App\Contracts\AgentDriverContract;
 use InvalidArgumentException;
 
@@ -27,7 +27,7 @@ class AgentManager
                 scenario: config('agent.drivers.mock.scenario', 'success'),
                 delayMs: config('agent.drivers.mock.delay_ms', 1000),
             ),
-            'claude-code' => new ClaudeCodeDriver(
+            'nvidia' => new NvidiaAgentDriver(
                 dispatcher: app(AgentEventDispatcher::class),
             ),
             default => throw new InvalidArgumentException("Agent driver [{$name}] is not supported."),

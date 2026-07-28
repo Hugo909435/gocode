@@ -70,6 +70,13 @@
                     >
                         {{ session.mode }}
                     </span>
+                    <!-- Model -->
+                    <span
+                        v-if="session && session.model"
+                        class="text-[9px] px-2 py-0.5 border border-primary/20 text-primary/50 font-bold theme-text rounded-[--radius-none]"
+                    >
+                        {{ modelLabel(session.model) }}
+                    </span>
                     <!-- Status -->
                     <span
                         v-if="session"
@@ -775,6 +782,22 @@
                         >
                             {{ m.label }}
                         </button>
+                        <template v-if="selectedMode === 'execute'">
+                            <span class="text-primary/10">|</span>
+                            <button
+                                v-for="mo in models"
+                                :key="mo.value"
+                                class="text-[10px] font-bold theme-text transition-all"
+                                :class="
+                                    selectedModel === mo.value
+                                        ? 'text-primary glow underline underline-offset-4'
+                                        : 'text-primary/30 hover:text-primary/60'
+                                "
+                                @click="setModel(mo.value)"
+                            >
+                                {{ mo.label }}
+                            </button>
+                        </template>
                     </div>
                     <span class="text-[9px] text-primary/20 theme-text hidden sm:inline">{{
                         settings.theme === 'hacker'
@@ -852,6 +875,7 @@ const savingRemote = ref(false);
 const remoteError = ref('');
 const instruction = ref('');
 const selectedMode = ref('execute');
+const selectedModel = ref('kimi');
 const confirmedActions = ref(new Map());
 const userScrolled = ref(false);
 const pollConnected = ref(false);
@@ -881,6 +905,28 @@ const modes = [
     { value: 'plan', label: 'PLAN', desc: 'STRATEGY' },
     { value: 'execute', label: 'EXEC', desc: 'OVERWRITE' },
 ];
+
+const models = [
+    { value: 'kimi', label: 'KIMI', desc: 'K2.6' },
+    { value: 'deepseek', label: 'DEEPSEEK', desc: 'V4_FLASH' },
+];
+
+function modelLabel(value) {
+    return models.find((m) => m.value === value)?.label ?? value;
+}
+
+async function setModel(value) {
+    if (isActive.value || selectedModel.value === value) return;
+    const previous = selectedModel.value;
+    selectedModel.value = value;
+    try {
+        const updated = await store.updateSession(sessionId.value, { model: value });
+        session.value = updated;
+    } catch (e) {
+        console.error('Erreur changement de modèle:', e);
+        selectedModel.value = previous;
+    }
+}
 
 const activeStatuses = new Set(['reading', 'planning', 'building', 'running']);
 
@@ -942,6 +988,7 @@ async function loadSession() {
         const data = await store.fetchSession(sessionId.value);
         session.value = data;
         selectedMode.value = data.mode || 'execute';
+        selectedModel.value = data.model || 'kimi';
     } finally {
         loadingSession.value = false;
     }
